@@ -16,6 +16,8 @@
 - **Mystery State**: Initial load displays a bouncing Poké Ball with "???" until the user interacts.
 - **Generation**: Clicking "Get Random Pokémon" (or Spacebar) fetches a random Pokémon from PokeAPI.
 - **Shiny System**: Configurable chance (default 1%) to roll a shiny variant. Shiny cards have a special golden border and sparkle effects. (Can force via `window.forceShiny = true` in console).
+- **Pokemon Cries**: Plays the authentic legacy or latest Pokémon audio cry from the API when generated. Volume is configurable via `AUDIO_VOLUME` in `config.ts`.
+- **Random Abilities**: Fetches all possible abilities for the generated Pokémon and randomly assigns one to display. If a 'hidden' ability rolls, it gets special pink UI styling.
 - **Currency System**: Header displays a placeholder "₽" (PokéDollars) pulled from `config.ts`.
 - **Responsive UI**: Hover and active states on buttons/cards mimic pixel-art physical buttons.
 
