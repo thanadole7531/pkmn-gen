@@ -36,6 +36,10 @@
                 <div id="pokemon-types" class="types-container">
                     <!-- Types will be injected here -->
                 </div>
+                <div id="pokemon-ability-container" class="ability-container hidden">
+                    <span class="ability-label">Ability:</span>
+                    <span id="pokemon-ability" class="ability-name">---</span>
+                </div>
             </div>
         </main>
 
@@ -44,6 +48,8 @@
             <div class="btn-glow"></div>
         </button>
     </div>
+    
+    <audio id="pokemon-cry" preload="auto"></audio>
     
     <script type="module" src="/script.ts"></script>
 </body>

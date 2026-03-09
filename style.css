@@ -241,6 +241,43 @@ h2 {
 .steel { background: linear-gradient(135deg, #B7B7CE, #9292A8); color: #000; text-shadow: none; }
 .fairy { background: linear-gradient(135deg, #D685AD, #B5658E); color: #fff; }
 
+.ability-container {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        -2px 0 0 0 rgba(255,255,255,0.2),
+        2px 0 0 0 rgba(255,255,255,0.2),
+        0 -2px 0 0 rgba(255,255,255,0.2),
+        0 2px 0 0 rgba(255,255,255,0.2),
+        2px 2px 0 0 rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ability-label {
+    font-size: 0.5rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ability-name {
+    font-size: 0.7rem;
+    color: #fde047;
+    text-transform: capitalize;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+}
+.ability-name.hidden-ability {
+    color: #f472b6; /* special color for hidden abilities */
+}
+
+.fetching .ability-container {
+    opacity: 0.5;
+}
+
 .primary-btn {
     position: relative;
     background: var(--primary);

@@ -3,6 +3,7 @@ export const CONFIG = {
     MAX_POKEMON: 1025,
     SHINY_CHANCE: 0.01,
     STARTING_CURRENCY: 500, // Placeholder currency "P" amount
+    AUDIO_VOLUME: 0.3, // 30% volume for cries
     
     // API Endpoints
     API_BASE_URL: 'https://pokeapi.co/api/v2/pokemon',

@@ -17,11 +17,23 @@ interface PokemonSprites {
     front_shiny: string | null;
 }
 
+interface PokemonAbility {
+    is_hidden: boolean;
+    ability: {
+        name: string;
+    }
+}
+
 interface PokemonData {
     name: string;
     id: number;
     sprites: PokemonSprites;
     types: PokemonType[];
+    cries: {
+        latest: string;
+        legacy: string;
+    };
+    abilities: PokemonAbility[];
 }
 
 import { CONFIG } from './config';
@@ -41,11 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const pokemonId = document.getElementById('pokemon-id') as HTMLElement | null;
     const pokemonTypesContainer = document.getElementById('pokemon-types') as HTMLElement | null;
     const currencyDisplay = document.getElementById('player-currency') as HTMLElement | null;
+    const abilityContainer = document.getElementById('pokemon-ability-container') as HTMLElement | null;
+    const abilityName = document.getElementById('pokemon-ability') as HTMLElement | null;
+    const audioElement = document.getElementById('pokemon-cry') as HTMLAudioElement | null;
     
-    if (!generateBtn || !pokemonCard || !pokemonSprite || !pokemonName || !pokemonId || !pokemonTypesContainer || !currencyDisplay) {
+    if (!generateBtn || !pokemonCard || !pokemonSprite || !pokemonName || !pokemonId || !pokemonTypesContainer || !currencyDisplay || !abilityContainer || !abilityName || !audioElement) {
         console.error("Missing required DOM elements.");
         return;
     }
+
+    // Set audio volume from configuration
+    audioElement.volume = CONFIG.AUDIO_VOLUME;
 
     // Initialize currency display with mock value
     currencyDisplay.textContent = CONFIG.STARTING_CURRENCY.toLocaleString();
@@ -88,20 +106,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const types = data.types.map(typeInfo => typeInfo.type.name);
             
+            // Get random ability from the pokemon's pool
+            const randomAbilityStatus = data.abilities[Math.floor(Math.random() * data.abilities.length)];
+            
+            // Set up audio (using legacy if available for retro feel, else latest)
+            const cryUrl = data.cries.legacy || data.cries.latest;
+            if (cryUrl && audioElement) {
+                audioElement.src = cryUrl;
+            }
+            
             // Preload image before updating UI entirely
             if (spriteUrl) {
                 const img = new Image();
                 img.onload = () => {
-                    updateUI(name, paddedId, spriteUrl, types, isShiny);
+                    updateUI(name, paddedId, spriteUrl, types, isShiny, randomAbilityStatus);
                     finishLoading();
                 };
                 img.onerror = () => {
-                    updateUI(name, paddedId, null, types, false);
+                    updateUI(name, paddedId, null, types, false, randomAbilityStatus);
                     finishLoading();
                 };
                 img.src = spriteUrl;
             } else {
-                updateUI(name, paddedId, null, types, false);
+                updateUI(name, paddedId, null, types, false, randomAbilityStatus);
                 finishLoading();
             }
             
@@ -111,19 +138,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pokemonId) pokemonId.textContent = '???';
             if (pokemonSprite) pokemonSprite.src = '';
             if (pokemonTypesContainer) pokemonTypesContainer.innerHTML = '';
-            finishLoading();
+            if (abilityContainer) abilityContainer.classList.add('hidden');
+            finishLoading(false);
         }
     };
     
-    const finishLoading = (): void => {
+    const finishLoading = (playAudio: boolean = true): void => {
         pokemonCard.classList.remove('fetching');
         generateBtn.disabled = false;
         
         // Add pop effect to the sprite
         resetAnimation(pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+        
+        // Play the cry
+        if (playAudio && audioElement && audioElement.src) {
+            audioElement.play().catch(e => console.log('Audio play prevented', e));
+        }
     };
     
-    const updateUI = (name: string, id: string, spriteUrl: string | null, types: string[], isShiny: boolean): void => {
+    const updateUI = (name: string, id: string, spriteUrl: string | null, types: string[], isShiny: boolean, abilityStatus: PokemonAbility): void => {
         // Format name (e.g., mr-mime to Mr Mime)
         const formattedName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         
@@ -166,6 +199,16 @@ document.addEventListener('DOMContentLoaded', () => {
             typeSpan.textContent = type;
             pokemonTypesContainer.appendChild(typeSpan);
         });
+        
+        // Update Ability
+        abilityContainer.classList.remove('hidden');
+        abilityName.textContent = abilityStatus.ability.name.replace(/-/g, ' ');
+        if (abilityStatus.is_hidden) {
+            abilityName.classList.add('hidden-ability');
+            abilityName.textContent += ' (Hidden)';
+        } else {
+            abilityName.classList.remove('hidden-ability');
+        }
     };
     
     // Event listeners
