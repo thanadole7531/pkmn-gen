@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Pokémon Generator</title>
+    <meta name="description" content="Get a random Pokémon name and pixel art sprite with a single click.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div class="currency-badge">
+                    <span class="currency-icon">₽</span>
+                    <span id="player-currency">--</span>
+                </div>
+            </div>
+            <h1>Who's That Pokémon?</h1>
+            <p>Click the button or press Space to find out!</p>
+        </header>
+
+        <main class="card" id="pokemon-card">
+            <div class="sprite-container">
+                <div class="sprite-background"></div>
+                <div id="loader" class="loader hidden"></div>
+                <img id="pokemon-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Mystery Pokémon" class="sprite">
+            </div>
+            
+            <div class="info-container">
+                <div class="id-badge">#<span id="pokemon-id">???</span></div>
+                <h2 id="pokemon-name">???</h2>
+                <div id="pokemon-types" class="types-container">
+                    <!-- Types will be injected here -->
+                </div>
+            </div>
+        </main>
+
+        <button id="generate-btn" class="primary-btn">
+            <span class="btn-text">Get Random Pokémon</span>
+            <div class="btn-glow"></div>
+        </button>
+    </div>
+    
+    <script type="module" src="/script.ts"></script>
+</body>
+</html>
