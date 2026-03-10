@@ -64,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tabs: document.querySelectorAll('.tab-btn'),
         tabContents: document.querySelectorAll('.tab-content'),
 
+        // Global
+        tabHeader: document.getElementById('tab-header') as HTMLElement,
+
         // Generator UI
         generateBtn: document.getElementById('generate-btn') as HTMLButtonElement,
         catchBtn: document.getElementById('catch-btn') as HTMLButtonElement,
@@ -162,6 +165,16 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.tabs.forEach(btn => {
             (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.tab === tabId);
         });
+
+        // Update Header
+        if (elements.tabHeader) {
+            switch (tabId) {
+                case 'generator-tab': elements.tabHeader.textContent = 'Encounter'; break;
+                case 'storage-tab': elements.tabHeader.textContent = 'PC Storage'; break;
+                case 'items-tab': elements.tabHeader.textContent = 'Items'; break;
+            }
+        }
+
         if (tabId === 'storage-tab') renderStorage();
     };
 
@@ -207,12 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const img = new Image();
                 img.onload = () => {
                     updateUI();
-                    elements.pokemonSprite.classList.remove('hidden');
-                    resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+
+                    // Small artificial delay for "Who's That Pokemon" feels + stability
+                    setTimeout(() => {
+                        elements.pokemonSprite.classList.remove('hidden');
+                        resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+                        elements.generateBtn.disabled = false;
+                        elements.catchBtn.disabled = false;
+                    }, 500);
                 };
                 img.src = spriteUrl;
             } else {
                 updateUI();
+                elements.generateBtn.disabled = false;
+                elements.catchBtn.disabled = false;
             }
 
             // Cry
@@ -225,10 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Fetch failed:', error);
             elements.pokemonName.textContent = 'Error';
+            elements.generateBtn.disabled = false;
         } finally {
             elements.pokemonCard.classList.remove('fetching');
-            elements.generateBtn.disabled = false;
-            elements.catchBtn.disabled = false;
         }
     }
 
@@ -265,7 +285,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.balls <= 0) {
                 elements.catchFeedbackContainer.classList.remove('hidden');
                 elements.catchFeedback.textContent = 'NO BALLS!';
-                return;
+                elements.catchFeedback.style.color = '#f87171';
+
+                // Auto-hide after 2s
+                setTimeout(() => {
+                    elements.catchFeedbackContainer.classList.add('hidden');
+                }, 2000);
             }
             return;
         }
@@ -304,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Auto-next after 1.5s
             setTimeout(() => {
+                elements.catchFeedbackContainer.classList.add('hidden');
                 fetchPokemon();
             }, 1500);
 

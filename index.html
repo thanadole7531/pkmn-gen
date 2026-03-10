@@ -13,6 +13,13 @@
 </head>
 
 <body>
+    <div class="header-top fixed-top-right">
+        <div class="currency-badge">
+            <span class="currency-icon">₽</span>
+            <span id="player-currency">--</span>
+        </div>
+    </div>
+
     <div class="container">
         <nav class="tabs" id="main-tabs">
             <button class="tab-btn active" data-tab="generator-tab">Encounter</button>
@@ -20,16 +27,11 @@
             <button class="tab-btn" data-tab="items-tab">Items</button>
         </nav>
 
+        <header class="main-header">
+            <h1 id="tab-header">Encounter</h1>
+        </header>
+
         <div id="generator-tab" class="tab-content active-content">
-            <header>
-                <div class="header-top">
-                    <div class="currency-badge">
-                        <span class="currency-icon">₽</span>
-                        <span id="player-currency">--</span>
-                    </div>
-                </div>
-                <h1>Who's That Pokémon?</h1>
-            </header>
 
             <div class="status-container">
                 <div class="status-box">
@@ -77,10 +79,6 @@
         </div>
 
         <div id="storage-tab" class="tab-content hidden">
-            <header>
-                <h1>PC Storage</h1>
-                <p>Manage your caught Pokémon</p>
-            </header>
             <div id="storage-grid" class="storage-grid">
                 <!-- Pokémon will be injected here -->
             </div>
@@ -92,10 +90,9 @@
         </div>
 
         <div id="items-tab" class="tab-content hidden">
-            <header>
-                <h1>Item Bag</h1>
+            <div class="coming-soon">
                 <p>Coming Soon...</p>
-            </header>
+            </div>
         </div>
 
     </div>
