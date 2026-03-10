@@ -18,7 +18,7 @@
 
 body {
     background-color: var(--bg-color);
-    background-image: 
+    background-image:
         radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 85% 30%, rgba(239, 68, 68, 0.15) 0%, transparent 50%);
     color: var(--text-main);
@@ -109,7 +109,7 @@ header p {
     flex-direction: column;
     align-items: center;
     /* Pixel art border using box-shadow */
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fff,
         4px 0 0 0 #fff,
         0 -4px 0 0 #fff,
@@ -123,7 +123,7 @@ header p {
 
 .card:hover {
     transform: translate(-4px, -4px);
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fff,
         4px 0 0 0 #fff,
         0 -4px 0 0 #fff,
@@ -146,7 +146,7 @@ header p {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
     border-radius: 50%;
     animation: pulse 3s infinite alternate;
 }
@@ -157,11 +157,14 @@ header p {
     object-fit: contain;
     z-index: 2;
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s ease;
-    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5));
-    animation: float 4s ease-in-out infinite; /* Set immediately */
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
+    animation: float 4s ease-in-out infinite;
+    /* Set immediately */
     image-rendering: pixelated;
-    will-change: transform; /* Fixes stuttering on initial load */
-    transform: translateZ(0); /* Forces GPU hardware acceleration */
+    will-change: transform;
+    /* Fixes stuttering on initial load */
+    transform: translateZ(0);
+    /* Forces GPU hardware acceleration */
 }
 
 .sprite-container:hover .sprite {
@@ -181,12 +184,12 @@ header p {
     font-size: 0.6rem;
     display: inline-block;
     margin-bottom: 0.75rem;
-    border: 2px solid rgba(255,255,255,0.2);
-    box-shadow: 
-        -2px 0 0 0 rgba(255,255,255,0.2),
-        2px 0 0 0 rgba(255,255,255,0.2),
-        0 -2px 0 0 rgba(255,255,255,0.2),
-        0 2px 0 0 rgba(255,255,255,0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        -2px 0 0 0 rgba(255, 255, 255, 0.2),
+        2px 0 0 0 rgba(255, 255, 255, 0.2),
+        0 -2px 0 0 rgba(255, 255, 255, 0.2),
+        0 2px 0 0 rgba(255, 255, 255, 0.2);
 }
 
 h2 {
@@ -195,7 +198,7 @@ h2 {
     font-weight: 400;
     margin-bottom: 1rem;
     letter-spacing: 0.5px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .types-container {
@@ -212,46 +215,121 @@ h2 {
     text-transform: uppercase;
     letter-spacing: 1px;
     border: 2px solid #000;
-    box-shadow: 
+    box-shadow:
         -2px 0 0 0 #000,
         2px 0 0 0 #000,
         0 -2px 0 0 #000,
         0 2px 0 0 #000,
-        2px 2px 0 0 rgba(0,0,0,0.5);
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+        2px 2px 0 0 rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 /* Pokemon Type Colors */
-.normal { background: linear-gradient(135deg, #A8A77A, #8A8A59); color: #fff; }
-.fire { background: linear-gradient(135deg, #EE8130, #C66320); color: #fff; }
-.water { background: linear-gradient(135deg, #6390F0, #4A70C0); color: #fff; }
-.electric { background: linear-gradient(135deg, #F7D02C, #D4AF37); color: #000; text-shadow: none; }
-.grass { background: linear-gradient(135deg, #7AC74C, #5A9E38); color: #fff; }
-.ice { background: linear-gradient(135deg, #96D9D6, #6CB5B2); color: #000; text-shadow: none; }
-.fighting { background: linear-gradient(135deg, #C22E28, #9A201A); color: #fff; }
-.poison { background: linear-gradient(135deg, #A33EA1, #802E7E); color: #fff; }
-.ground { background: linear-gradient(135deg, #E2BF65, #B89B48); color: #000; text-shadow: none; }
-.flying { background: linear-gradient(135deg, #A98FF3, #8A6DE3); color: #fff; }
-.psychic { background: linear-gradient(135deg, #F95587, #D93E6B); color: #fff; }
-.bug { background: linear-gradient(135deg, #A6B91A, #859610); color: #fff; }
-.rock { background: linear-gradient(135deg, #B6A136, #948226); color: #fff; }
-.ghost { background: linear-gradient(135deg, #735797, #594275); color: #fff; }
-.dragon { background: linear-gradient(135deg, #6F35FC, #5224D6); color: #fff; }
-.dark { background: linear-gradient(135deg, #705848, #4D3D32); color: #fff; }
-.steel { background: linear-gradient(135deg, #B7B7CE, #9292A8); color: #000; text-shadow: none; }
-.fairy { background: linear-gradient(135deg, #D685AD, #B5658E); color: #fff; }
+.normal {
+    background: linear-gradient(135deg, #A8A77A, #8A8A59);
+    color: #fff;
+}
+
+.fire {
+    background: linear-gradient(135deg, #EE8130, #C66320);
+    color: #fff;
+}
+
+.water {
+    background: linear-gradient(135deg, #6390F0, #4A70C0);
+    color: #fff;
+}
+
+.electric {
+    background: linear-gradient(135deg, #F7D02C, #D4AF37);
+    color: #000;
+    text-shadow: none;
+}
+
+.grass {
+    background: linear-gradient(135deg, #7AC74C, #5A9E38);
+    color: #fff;
+}
+
+.ice {
+    background: linear-gradient(135deg, #96D9D6, #6CB5B2);
+    color: #000;
+    text-shadow: none;
+}
+
+.fighting {
+    background: linear-gradient(135deg, #C22E28, #9A201A);
+    color: #fff;
+}
+
+.poison {
+    background: linear-gradient(135deg, #A33EA1, #802E7E);
+    color: #fff;
+}
+
+.ground {
+    background: linear-gradient(135deg, #E2BF65, #B89B48);
+    color: #000;
+    text-shadow: none;
+}
+
+.flying {
+    background: linear-gradient(135deg, #A98FF3, #8A6DE3);
+    color: #fff;
+}
+
+.psychic {
+    background: linear-gradient(135deg, #F95587, #D93E6B);
+    color: #fff;
+}
+
+.bug {
+    background: linear-gradient(135deg, #A6B91A, #859610);
+    color: #fff;
+}
+
+.rock {
+    background: linear-gradient(135deg, #B6A136, #948226);
+    color: #fff;
+}
+
+.ghost {
+    background: linear-gradient(135deg, #735797, #594275);
+    color: #fff;
+}
+
+.dragon {
+    background: linear-gradient(135deg, #6F35FC, #5224D6);
+    color: #fff;
+}
+
+.dark {
+    background: linear-gradient(135deg, #705848, #4D3D32);
+    color: #fff;
+}
+
+.steel {
+    background: linear-gradient(135deg, #B7B7CE, #9292A8);
+    color: #000;
+    text-shadow: none;
+}
+
+.fairy {
+    background: linear-gradient(135deg, #D685AD, #B5658E);
+    color: #fff;
+}
 
 .ability-container {
     margin-top: 1.5rem;
     padding: 0.75rem;
     background: rgba(0, 0, 0, 0.4);
     border: 2px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 
-        -2px 0 0 0 rgba(255,255,255,0.2),
-        2px 0 0 0 rgba(255,255,255,0.2),
-        0 -2px 0 0 rgba(255,255,255,0.2),
-        0 2px 0 0 rgba(255,255,255,0.2),
-        2px 2px 0 0 rgba(0,0,0,0.5);
+    box-shadow:
+        -2px 0 0 0 rgba(255, 255, 255, 0.2),
+        2px 0 0 0 rgba(255, 255, 255, 0.2),
+        0 -2px 0 0 rgba(255, 255, 255, 0.2),
+        0 2px 0 0 rgba(255, 255, 255, 0.2),
+        2px 2px 0 0 rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -268,10 +346,12 @@ h2 {
     font-size: 0.7rem;
     color: #fde047;
     text-transform: capitalize;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
+
 .ability-name.hidden-ability {
-    color: #f472b6; /* special color for hidden abilities */
+    color: #f472b6;
+    /* special color for hidden abilities */
 }
 
 .fetching .ability-container {
@@ -289,7 +369,7 @@ h2 {
     overflow: hidden;
     transition: transform 0.1s steps(2);
     /* Pixel shadow similar to the card */
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fff,
         4px 0 0 0 #fff,
         0 -4px 0 0 #fff,
@@ -300,12 +380,13 @@ h2 {
     opacity: 0;
     width: 100%;
     max-width: 300px;
-    margin-top: 1.5rem; /* Added spacing from the card */
+    margin-top: 1.5rem;
+    /* Added spacing from the card */
 }
 
 .primary-btn:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fff,
         4px 0 0 0 #fff,
         0 -4px 0 0 #fff,
@@ -316,7 +397,7 @@ h2 {
 
 .primary-btn:active {
     transform: translate(0, 0);
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fff,
         4px 0 0 0 #fff,
         0 -4px 0 0 #fff,
@@ -330,7 +411,7 @@ h2 {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
     opacity: 0;
     transform: scale(0.5);
     transition: opacity 0.3s, transform 0.5s;
@@ -361,6 +442,156 @@ h2 {
     display: none !important;
 }
 
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    justify-content: center;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    padding: 0.75rem 1rem;
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    border-color: #fff;
+    color: #fff;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Status Bar */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+    font-size: 0.6rem;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+}
+
+.status-item .label {
+    color: var(--text-muted);
+}
+
+.status-item .value {
+    color: #fde047;
+    margin-left: 0.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+}
+
+/* Storage Grid */
+.storage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    width: 100%;
+    min-height: 300px;
+    margin: 1.5rem 0;
+}
+
+.storage-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.storage-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.storage-item img {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+}
+
+.storage-item .name {
+    font-size: 0.5rem;
+    margin-top: 0.5rem;
+    text-transform: capitalize;
+    color: var(--text-muted);
+}
+
+.storage-item .release-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary);
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 8px;
+    padding: 2px 4px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+#page-info {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+
+/* Feedback text */
+#catch-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    color: #fff;
+    text-shadow:
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        2px 2px 0 #000,
+        0px 4px 10px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 /* Add fetching class behavior */
 .fetching .sprite {
     opacity: 0.1;
@@ -376,7 +607,8 @@ h2 {
     display: block !important;
 }
 
-.fetching .id-badge, .fetching .types-container {
+.fetching .id-badge,
+.fetching .types-container {
     opacity: 0.5;
 }
 
@@ -384,7 +616,7 @@ h2 {
 .card.shiny {
     background: rgba(30, 41, 59, 0.9);
     border-color: #fde047;
-    box-shadow: 
+    box-shadow:
         -4px 0 0 0 #fde047,
         4px 0 0 0 #fde047,
         0 -4px 0 0 #fde047,
@@ -410,51 +642,130 @@ h2 {
     filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.8));
 }
 
-.shiny-sparkle:nth-child(1) { top: 10%; left: 15%; animation-delay: 0s; }
-.shiny-sparkle:nth-child(2) { top: 25%; right: 15%; animation-delay: 0.5s; font-size: 1rem; }
-.shiny-sparkle:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 1s; font-size: 1.2rem; }
+.shiny-sparkle:nth-child(1) {
+    top: 10%;
+    left: 15%;
+    animation-delay: 0s;
+}
+
+.shiny-sparkle:nth-child(2) {
+    top: 25%;
+    right: 15%;
+    animation-delay: 0.5s;
+    font-size: 1rem;
+}
+
+.shiny-sparkle:nth-child(3) {
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 1s;
+    font-size: 1.2rem;
+}
 
 /* Animations */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes float {
-    0% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-10px) rotate(2deg); }
-    66% { transform: translateY(-5px) rotate(-2deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    33% {
+        transform: translateY(-10px) rotate(2deg);
+    }
+
+    66% {
+        transform: translateY(-5px) rotate(-2deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
 }
 
 @keyframes pulse {
-    0% { transform: scale(0.95); opacity: 0.3; }
-    100% { transform: scale(1.05); opacity: 0.6; }
+    0% {
+        transform: scale(0.95);
+        opacity: 0.3;
+    }
+
+    100% {
+        transform: scale(1.05);
+        opacity: 0.6;
+    }
 }
 
 @keyframes rotation {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes rotateGlow {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes popIn {
-    0% { transform: scale(0.8); opacity: 0; }
-    50% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @keyframes sparkleAnim {
-    0% { transform: scale(0.5) rotate(0deg); opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { transform: scale(1.5) rotate(90deg); opacity: 0.2; }
+    0% {
+        transform: scale(0.5) rotate(0deg);
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.5) rotate(90deg);
+        opacity: 0.2;
+    }
 }

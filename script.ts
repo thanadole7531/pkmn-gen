@@ -1,15 +1,13 @@
 /**
  * Random Pokémon Project - Hobby Phase
  * Goal: Transform into a unique browser-based Pokémon game.
- * Future Ideas: Shiny hunting, collection system, "P" currency.
- * Note: Keep current stable state until ideas are refined.
  */
 
-// Define interfaces for PokeAPI response
+import { CONFIG } from './config';
+
+// --- Interfaces ---
 interface PokemonType {
-    type: {
-        name: string;
-    }
+    type: { name: string; }
 }
 
 interface PokemonSprites {
@@ -19,9 +17,7 @@ interface PokemonSprites {
 
 interface PokemonAbility {
     is_hidden: boolean;
-    ability: {
-        name: string;
-    }
+    ability: { name: string; }
 }
 
 interface PokemonData {
@@ -29,15 +25,30 @@ interface PokemonData {
     id: number;
     sprites: PokemonSprites;
     types: PokemonType[];
-    cries: {
-        latest: string;
-        legacy: string;
-    };
+    cries: { latest: string; legacy: string; };
     abilities: PokemonAbility[];
-    species: { name: string; url: string };
+    species: { name: string; url: string; };
 }
 
-import { CONFIG } from './config';
+interface CaughtPokemon extends PokemonData {
+    uuid: string;
+    caughtDate: number;
+    isShiny: boolean;
+    abilityStatus: PokemonAbility;
+}
+
+// --- Global State ---
+const state = {
+    currency: Number(localStorage.getItem('pkmn_currency')) || CONFIG.STARTING_CURRENCY,
+    balls: Number(localStorage.getItem('pkmn_balls')) || CONFIG.STARTING_BALLS,
+    location: CONFIG.LOCATIONS.find(l => l.habitat === CONFIG.DEFAULT_LOCATION) || CONFIG.LOCATIONS[0],
+    pcStorage: JSON.parse(localStorage.getItem('pkmn_storage') || '[]') as CaughtPokemon[],
+    currentPage: 1,
+    itemsPerPage: 9,
+    currentPokemon: null as PokemonData | null,
+    currentIsShiny: false,
+    currentAbility: null as PokemonAbility | null
+};
 
 // Add a global type extension for window.forceShiny
 declare global {
@@ -47,259 +58,302 @@ declare global {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const generateBtn = document.getElementById('generate-btn') as HTMLButtonElement | null;
-    const pokemonCard = document.getElementById('pokemon-card') as HTMLElement | null;
-    const pokemonSprite = document.getElementById('pokemon-sprite') as HTMLImageElement | null;
-    const pokemonName = document.getElementById('pokemon-name') as HTMLElement | null;
-    const pokemonId = document.getElementById('pokemon-id') as HTMLElement | null;
-    const pokemonTypesContainer = document.getElementById('pokemon-types') as HTMLElement | null;
-    const currencyDisplay = document.getElementById('player-currency') as HTMLElement | null;
-    const abilityContainer = document.getElementById('pokemon-ability-container') as HTMLElement | null;
-    const abilityName = document.getElementById('pokemon-ability') as HTMLElement | null;
-    const audioElement = document.getElementById('pokemon-cry') as HTMLAudioElement | null;
+    // --- DOM Elements ---
+    const elements = {
+        // Tabs
+        tabs: document.querySelectorAll('.tab-btn'),
+        tabContents: document.querySelectorAll('.tab-content'),
 
-    if (!generateBtn || !pokemonCard || !pokemonSprite || !pokemonName || !pokemonId || !pokemonTypesContainer || !currencyDisplay || !abilityContainer || !abilityName || !audioElement) {
-        console.error("Missing required DOM elements.");
-        return;
-    }
+        // Generator UI
+        generateBtn: document.getElementById('generate-btn') as HTMLButtonElement,
+        catchBtn: document.getElementById('catch-btn') as HTMLButtonElement,
+        pokemonCard: document.getElementById('pokemon-card') as HTMLElement,
+        pokemonSprite: document.getElementById('pokemon-sprite') as HTMLImageElement,
+        pokemonName: document.getElementById('pokemon-name') as HTMLElement,
+        pokemonId: document.getElementById('pokemon-id') as HTMLElement,
+        pokemonTypes: document.getElementById('pokemon-types') as HTMLElement,
+        abilityContainer: document.getElementById('pokemon-ability-container') as HTMLElement,
+        abilityName: document.getElementById('pokemon-ability') as HTMLElement,
+        catchFeedback: document.getElementById('catch-feedback') as HTMLElement,
 
-    // --- New UI State Variables ---
-    let selectedBallKey: keyof typeof CONFIG.BALLS = 'POKEBALL';
-    let selectedLocation: { name: string; habitat: string; minRank: number } = CONFIG.LOCATIONS[0];
-    const locationSelect = document.getElementById('location-select') as HTMLSelectElement | null;
-    const ballTray = document.getElementById('ball-tray') as HTMLElement | null;
-    const catchBtn = document.getElementById('catch-btn') as HTMLButtonElement | null;
+        // Status Bar
+        currency: document.getElementById('player-currency') as HTMLElement,
+        location: document.getElementById('current-location') as HTMLElement,
+        ballName: document.getElementById('current-ball-name') as HTMLElement,
+        ballCount: document.getElementById('ball-count') as HTMLElement,
 
-    // Populate location selector
-    if (locationSelect) {
-        CONFIG.LOCATIONS.forEach(loc => {
-            const opt = document.createElement('option');
-            opt.value = loc.habitat;
-            opt.textContent = loc.name;
-            locationSelect.appendChild(opt);
-        });
-        locationSelect.addEventListener('change', () => {
-            const habitat = locationSelect.value;
-            const loc = CONFIG.LOCATIONS.find(l => l.habitat === habitat);
-            if (loc) selectedLocation = loc;
-        });
-    }
+        // Storage UI
+        storageGrid: document.getElementById('storage-grid') as HTMLElement,
+        prevPage: document.getElementById('prev-page') as HTMLButtonElement,
+        nextPage: document.getElementById('next-page') as HTMLButtonElement,
+        pageInfo: document.getElementById('page-info') as HTMLElement,
 
-    // Populate ball tray
-    if (ballTray) {
-        Object.entries(CONFIG.BALLS).forEach(([key, ball]) => {
-            const btn = document.createElement('button');
-            btn.className = 'primary-btn ball-btn';
-            btn.textContent = key.replace('BALL', ' Ball');
-            btn.dataset.ballKey = key;
+        // Audio
+        audio: document.getElementById('pokemon-cry') as HTMLAudioElement
+    };
+
+    // --- Initialization ---
+    const init = () => {
+        updateStatusBar();
+        setupEventListeners();
+        switchTab('generator-tab');
+        renderStorage();
+    };
+
+    const updateStatusBar = () => {
+        if (elements.currency) elements.currency.textContent = state.currency.toLocaleString();
+        if (elements.location) elements.location.textContent = state.location.name;
+        if (elements.ballName) elements.ballName.textContent = CONFIG.BALLS[CONFIG.DEFAULT_BALL].name;
+        if (elements.ballCount) elements.ballCount.textContent = state.balls.toString();
+
+        localStorage.setItem('pkmn_currency', state.currency.toString());
+        localStorage.setItem('pkmn_balls', state.balls.toString());
+    };
+
+    const setupEventListeners = () => {
+        // Tab switching
+        elements.tabs.forEach(btn => {
             btn.addEventListener('click', () => {
-                selectedBallKey = key as keyof typeof CONFIG.BALLS;
-                // highlight selected ball
-                const all = ballTray.querySelectorAll('.ball-btn');
-                all.forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
+                const target = (btn as HTMLElement).dataset.tab;
+                if (target) switchTab(target);
             });
-            ballTray.appendChild(btn);
         });
-    }
 
-    // Helper to fetch Pokemon IDs for a habitat
+        // Generator
+        elements.generateBtn.addEventListener('click', fetchPokemon);
+        elements.catchBtn.addEventListener('click', attemptCatch);
+
+        // PC Storage
+        elements.prevPage.addEventListener('click', () => {
+            if (state.currentPage > 1) {
+                state.currentPage--;
+                renderStorage();
+            }
+        });
+        elements.nextPage.addEventListener('click', () => {
+            const maxPage = Math.ceil(state.pcStorage.length / state.itemsPerPage) || 1;
+            if (state.currentPage < maxPage) {
+                state.currentPage++;
+                renderStorage();
+            }
+        });
+
+        // Global shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !elements.generateBtn.disabled && isTabActive('generator-tab')) {
+                e.preventDefault();
+                fetchPokemon();
+            }
+        });
+
+        if (elements.audio) elements.audio.volume = CONFIG.AUDIO_VOLUME;
+    };
+
+    const isTabActive = (id: string) => {
+        const tab = document.getElementById(id);
+        return tab && !tab.classList.contains('hidden');
+    };
+
+    const switchTab = (tabId: string) => {
+        elements.tabContents.forEach(content => {
+            content.classList.toggle('hidden', content.id !== tabId);
+        });
+        elements.tabs.forEach(btn => {
+            (btn as HTMLElement).classList.toggle('active', (btn as HTMLElement).dataset.tab === tabId);
+        });
+        if (tabId === 'storage-tab') renderStorage();
+    };
+
+    // --- Generator Logic ---
     const fetchIdsForHabitat = async (habitat: string): Promise<number[]> => {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-habitat/${habitat}/`);
-        if (!res.ok) throw new Error('Failed habitat fetch');
-        const data = await res.json();
-        // species array contains objects with name and url
-        const ids = data.pokemon_species.map((s: any) => {
-            const parts = s.url.split('/');
-            return parseInt(parts[parts.length - 2]);
-        });
-        return ids;
-    };
-
-    // Modified getRandomId to respect location
-    const getRandomId = async (): Promise<number> => {
-        const ids = await fetchIdsForHabitat(selectedLocation.habitat);
-        return ids[Math.floor(Math.random() * ids.length)];
-    };
-
-    // Catch attempt logic
-    const attemptCatch = async (pokemonData: PokemonData) => {
-        if (!catchBtn) return;
-        // fetch species data for capture_rate
-        const speciesRes = await fetch(pokemonData.species?.url ?? `${CONFIG.API_BASE_URL}-species/${pokemonData.id}`);
-        const speciesData = await speciesRes.json();
-        const baseRate = speciesData.capture_rate as number; // 0-255
-        const ball = CONFIG.BALLS[selectedBallKey];
-        const chance = (baseRate * ball.multiplier) / 255 * 100;
-        const success = Math.random() * 100 < chance;
-        if (success) {
-            alert(`Caught ${pokemonData.name}! (Ball: ${selectedBallKey})`);
-        } else {
-            alert(`The ${pokemonData.name} escaped! (Ball: ${selectedBallKey})`);
-        }
-    };
-
-    // Update UI after fetch to enable catch button
-    const finishLoading = (playAudio: boolean = true): void => {
-        pokemonCard.classList.remove('fetching');
-        generateBtn.disabled = false;
-        // enable catch button now that a pokemon is displayed
-        if (catchBtn) catchBtn.classList.remove('hidden');
-        // Play the cry
-        if (playAudio && audioElement && audioElement.src) {
-            audioElement.play().catch(e => console.log('Audio play prevented', e));
-        }
-    };
-
-    // Hook catch button
-    if (catchBtn) {
-        catchBtn.addEventListener('click', async () => {
-            // we need the currently displayed pokemon data; store it globally
-            if (currentPokemon) await attemptCatch(currentPokemon);
-        });
-    }
-
-    // Store the last fetched pokemon for catch attempts
-    let currentPokemon: PokemonData | null = null;
-
-    // Modify fetchPokemon to set currentPokemon
-    const fetchPokemon = async (): Promise<void> => {
-        const id = await getRandomId();
-        pokemonCard.classList.add('fetching');
-        generateBtn.disabled = true;
         try {
+            const res = await fetch(`https://pokeapi.co/api/v2/pokemon-habitat/${habitat}/`);
+            if (!res.ok) throw new Error('Habitat not found');
+            const data = await res.json();
+            return data.pokemon_species.map((s: any) => {
+                const parts = s.url.split('/');
+                return parseInt(parts[parts.length - 2]);
+            });
+        } catch (e) {
+            console.warn('Habitat fetch failed, using fallback random range', e);
+            // Fallback: return a few random IDs if habitat fails
+            return Array.from({ length: 10 }, () => Math.floor(Math.random() * CONFIG.MAX_POKEMON) + 1);
+        }
+    };
+
+    async function fetchPokemon() {
+        elements.pokemonCard.classList.add('fetching');
+        elements.generateBtn.disabled = true;
+        elements.catchBtn.classList.add('hidden');
+        elements.catchFeedback.classList.add('hidden');
+        elements.pokemonSprite.classList.remove('hidden');
+
+        try {
+            const ids = await fetchIdsForHabitat(state.location.habitat);
+            const id = ids[Math.floor(Math.random() * ids.length)];
+
             const response = await fetch(`${CONFIG.API_BASE_URL}/${id}`);
             if (!response.ok) throw new Error('Failed to fetch Pokémon');
+
             const data = await response.json() as PokemonData;
-            currentPokemon = data;
-            const isShiny = window.forceShiny || Math.random() < CONFIG.SHINY_CHANCE;
-            const name = data.name;
-            const paddedId = data.id.toString().padStart(3, '0');
-            const spriteUrl = (isShiny && data.sprites.front_shiny) ? data.sprites.front_shiny : data.sprites.front_default;
-            const types = data.types.map(t => t.type.name);
-            const randomAbilityStatus = data.abilities[Math.floor(Math.random() * data.abilities.length)];
+            state.currentPokemon = data;
+            state.currentIsShiny = window.forceShiny || Math.random() < CONFIG.SHINY_CHANCE;
+            state.currentAbility = data.abilities[Math.floor(Math.random() * data.abilities.length)];
+
+            updateUI();
+
+            // Cry
             const cryUrl = data.cries.legacy || data.cries.latest;
-            if (cryUrl && audioElement) audioElement.src = cryUrl;
-            if (spriteUrl) {
-                const img = new Image();
-                img.onload = () => { updateUI(name, paddedId, spriteUrl, types, isShiny, randomAbilityStatus); finishLoading(); };
-                img.onerror = () => { updateUI(name, paddedId, null, types, false, randomAbilityStatus); finishLoading(); };
-                img.src = spriteUrl;
-            } else {
-                updateUI(name, paddedId, null, types, false, randomAbilityStatus);
-                finishLoading();
+            if (cryUrl && elements.audio) {
+                elements.audio.src = cryUrl;
+                elements.audio.play().catch(() => { });
             }
+
         } catch (error) {
-            console.error('Error fetching Pokémon:', error);
-            if (pokemonName) pokemonName.textContent = '???';
-            if (pokemonId) pokemonId.textContent = '???';
-            if (pokemonSprite) pokemonSprite.src = '';
-            if (pokemonTypesContainer) pokemonTypesContainer.innerHTML = '';
-            if (abilityContainer) abilityContainer.classList.add('hidden');
-            finishLoading(false);
+            console.error(error);
+            elements.pokemonName.textContent = 'Error';
+        } finally {
+            elements.pokemonCard.classList.remove('fetching');
+            elements.generateBtn.disabled = false;
+            elements.catchBtn.classList.remove('hidden');
+            resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
         }
-    };
+    }
 
-    // Initial UI setup
-    if (locationSelect) locationSelect.value = selectedLocation.habitat;
-    // hide catch button until a pokemon appears
-    if (catchBtn) catchBtn.classList.add('hidden');
+    const updateUI = () => {
+        if (!state.currentPokemon) return;
+        const p = state.currentPokemon;
+        const formattedName = p.name.replace(/-/g, ' ');
 
-    // Event listeners
-    generateBtn.addEventListener('click', fetchPokemon);
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.code === 'Space' && !generateBtn.disabled) {
-            e.preventDefault();
-            fetchPokemon();
-        }
-    });
-    audioElement.volume = CONFIG.AUDIO_VOLUME;
+        elements.pokemonName.textContent = state.currentIsShiny ? `✨ ${formattedName} ✨` : formattedName;
+        elements.pokemonId.textContent = p.id.toString().padStart(3, '0');
+        elements.pokemonCard.classList.toggle('shiny', state.currentIsShiny);
 
-    // Initialize currency display with mock value
-    currencyDisplay.textContent = CONFIG.STARTING_CURRENCY.toLocaleString();
+        const spriteUrl = (state.currentIsShiny && p.sprites.front_shiny) ? p.sprites.front_shiny : p.sprites.front_default;
+        elements.pokemonSprite.src = spriteUrl || '';
 
-    // Generate a random ID
-
-
-
-
-    // const finishLoading = (playAudio: boolean = true): void => {
-    //     pokemonCard.classList.remove('fetching');
-    //     generateBtn.disabled = false;
-
-    //     // Add pop effect to the sprite
-    //     resetAnimation(pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
-
-    //     // Play the cry
-    //     if (playAudio && audioElement && audioElement.src) {
-    //         audioElement.play().catch(e => console.log('Audio play prevented', e));
-    //     }
-    // };
-
-    const updateUI = (name: string, id: string, spriteUrl: string | null, types: string[], isShiny: boolean, abilityStatus: PokemonAbility): void => {
-        // Format name (e.g., mr-mime to Mr Mime)
-        const formattedName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
-        // Update basic info and shiny state
-        if (isShiny) {
-            pokemonName.textContent = `✨ ${formattedName} ✨`;
-            pokemonCard.classList.add('shiny');
-
-            // Add sparkles to sprite container if not present
-            const spriteContainer = document.querySelector('.sprite-container');
-            if (spriteContainer && !spriteContainer.querySelector('.shiny-sparkles-container')) {
-                const sparkles = document.createElement('div');
-                sparkles.className = 'shiny-sparkles-container';
-                sparkles.innerHTML = '<span class="shiny-sparkle">✨</span><span class="shiny-sparkle">✨</span><span class="shiny-sparkle">✨</span>';
-                spriteContainer.appendChild(sparkles);
-            }
-        } else {
-            pokemonName.textContent = formattedName;
-            pokemonCard.classList.remove('shiny');
-
-            const sparkles = document.querySelector('.shiny-sparkles-container');
-            if (sparkles) sparkles.remove();
-        }
-
-        pokemonId.textContent = id;
-
-        // Update sprite
-        if (spriteUrl) {
-            pokemonSprite.src = spriteUrl;
-            pokemonSprite.alt = `${formattedName} pixel art sprite`;
-        } else {
-            pokemonSprite.alt = 'No sprite available';
-        }
-
-        // Update types
-        pokemonTypesContainer.innerHTML = '';
-        types.forEach(type => {
-            const typeSpan = document.createElement('span');
-            typeSpan.className = `type ${type}`;
-            typeSpan.textContent = type;
-            pokemonTypesContainer.appendChild(typeSpan);
+        elements.pokemonTypes.innerHTML = '';
+        p.types.forEach(t => {
+            const span = document.createElement('span');
+            span.className = `type ${t.type.name}`;
+            span.textContent = t.type.name;
+            elements.pokemonTypes.appendChild(span);
         });
 
-        // Update Ability
-        abilityContainer.classList.remove('hidden');
-        abilityName.textContent = abilityStatus.ability.name.replace(/-/g, ' ');
-        if (abilityStatus.is_hidden) {
-            abilityName.classList.add('hidden-ability');
-            abilityName.textContent += ' (Hidden)';
-        } else {
-            abilityName.classList.remove('hidden-ability');
+        if (state.currentAbility) {
+            elements.abilityContainer.classList.remove('hidden');
+            elements.abilityName.textContent = state.currentAbility.ability.name.replace(/-/g, ' ');
+            elements.abilityName.classList.toggle('hidden-ability', state.currentAbility.is_hidden);
+            if (state.currentAbility.is_hidden) elements.abilityName.textContent += ' (Hidden)';
         }
     };
 
-    // Event listeners
-    generateBtn.addEventListener('click', fetchPokemon);
-
-    // Keyboard support (Space to generate)
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.code === 'Space' && !generateBtn.disabled) {
-            e.preventDefault(); // Prevent scrolling
-            fetchPokemon();
+    async function attemptCatch() {
+        if (!state.currentPokemon || state.balls <= 0) {
+            if (state.balls <= 0) alert('No Balls left!');
+            return;
         }
-    });
 
+        elements.catchBtn.disabled = true;
+        state.balls--;
+        updateStatusBar();
+
+        try {
+            const res = await fetch(state.currentPokemon.species.url);
+            const speciesData = await res.json();
+            const baseRate = speciesData.capture_rate;
+            const ballMult = CONFIG.BALLS[CONFIG.DEFAULT_BALL].multiplier;
+
+            const chance = (baseRate * ballMult) / 255;
+            const success = Math.random() < chance;
+
+            // Feedback
+            elements.pokemonSprite.classList.add('hidden');
+            elements.catchFeedback.classList.remove('hidden');
+            elements.catchFeedback.textContent = success ? 'CAUGHT!' : 'ESCAPED!';
+            elements.catchFeedback.style.color = success ? '#4ade80' : '#f87171';
+
+            if (success) {
+                const caught: CaughtPokemon = {
+                    ...state.currentPokemon,
+                    uuid: crypto.randomUUID(),
+                    caughtDate: Date.now(),
+                    isShiny: state.currentIsShiny,
+                    abilityStatus: state.currentAbility!
+                };
+                state.pcStorage.unshift(caught); // Add to start
+                localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
+            }
+
+            // Auto-next after 1.5s
+            setTimeout(() => {
+                elements.catchBtn.disabled = false;
+                fetchPokemon();
+            }, 1500);
+
+        } catch (e) {
+            console.error('Catch failed', e);
+            elements.catchBtn.disabled = false;
+        }
+    }
+
+    // --- PC Storage Logic ---
+    const renderStorage = () => {
+        elements.storageGrid.innerHTML = '';
+        const start = (state.currentPage - 1) * state.itemsPerPage;
+        const end = start + state.itemsPerPage;
+        const pageItems = state.pcStorage.slice(start, end);
+
+        pageItems.forEach(pkmn => {
+            const item = document.createElement('div');
+            item.className = 'storage-item';
+            if (pkmn.isShiny) item.classList.add('shiny-item');
+
+            const img = document.createElement('img');
+            img.src = (pkmn.isShiny && pkmn.sprites.front_shiny) ? pkmn.sprites.front_shiny : pkmn.sprites.front_default || '';
+
+            const name = document.createElement('span');
+            name.className = 'name';
+            name.textContent = pkmn.name;
+
+            const relBtn = document.createElement('button');
+            relBtn.className = 'release-btn';
+            relBtn.textContent = 'REL';
+            relBtn.onclick = (e) => {
+                e.stopPropagation();
+                releasePokemon(pkmn.uuid);
+            };
+
+            item.appendChild(img);
+            item.appendChild(name);
+            item.appendChild(relBtn);
+            elements.storageGrid.appendChild(item);
+        });
+
+        const maxPage = Math.ceil(state.pcStorage.length / state.itemsPerPage) || 1;
+        elements.pageInfo.textContent = `Page ${state.currentPage} / ${maxPage}`;
+        elements.prevPage.disabled = state.currentPage === 1;
+        elements.nextPage.disabled = state.currentPage === maxPage;
+    };
+
+    const releasePokemon = (uuid: string) => {
+        const index = state.pcStorage.findIndex(p => p.uuid === uuid);
+        if (index !== -1) {
+            state.pcStorage.splice(index, 1);
+            state.currency += CONFIG.REWARD_RELEASE;
+            localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
+            updateStatusBar();
+            renderStorage();
+        }
+    };
+
+    // --- Helpers ---
+    const resetAnimation = (element: HTMLElement, animationName: string): void => {
+        element.style.animation = 'none';
+        element.offsetHeight; // trigger reflow
+        element.style.animation = animationName;
+    };
+
+    init();
 });
+
