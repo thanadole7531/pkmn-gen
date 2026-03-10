@@ -31,12 +31,12 @@
                 <h1>Who's That Pokémon?</h1>
             </header>
 
-            <div class="status-bar">
-                <div class="status-item">
+            <div class="status-container">
+                <div class="status-box">
                     <span class="label">Location:</span>
                     <span id="current-location" class="value">---</span>
                 </div>
-                <div class="status-item">
+                <div class="status-box">
                     <span id="current-ball-name" class="label">Poké Ball</span>:
                     <span id="ball-count" class="value">--</span>
                 </div>
@@ -46,7 +46,9 @@
                 <div class="sprite-container">
                     <div class="sprite-background"></div>
                     <div id="loader" class="loader hidden"></div>
-                    <div id="catch-feedback" class="hidden"></div>
+                    <div id="catch-feedback-container" class="hidden">
+                        <div id="catch-feedback"></div>
+                    </div>
                     <img id="pokemon-sprite"
                         src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png"
                         alt="Mystery Pokémon" class="sprite">
@@ -66,7 +68,7 @@
             </main>
 
             <div class="action-buttons">
-                <button id="catch-btn" class="primary-btn hidden">Catch</button>
+                <button id="catch-btn" class="primary-btn" disabled>Catch</button>
                 <button id="generate-btn" class="primary-btn">
                     <span class="btn-text">Find Next</span>
                     <div class="btn-glow"></div>

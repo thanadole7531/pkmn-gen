@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pokemonTypes: document.getElementById('pokemon-types') as HTMLElement,
         abilityContainer: document.getElementById('pokemon-ability-container') as HTMLElement,
         abilityName: document.getElementById('pokemon-ability') as HTMLElement,
+        catchFeedbackContainer: document.getElementById('catch-feedback-container') as HTMLElement,
         catchFeedback: document.getElementById('catch-feedback') as HTMLElement,
 
         // Status Bar
@@ -184,9 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchPokemon() {
         elements.pokemonCard.classList.add('fetching');
         elements.generateBtn.disabled = true;
-        elements.catchBtn.classList.add('hidden');
-        elements.catchFeedback.classList.add('hidden');
-        elements.pokemonSprite.classList.remove('hidden');
+        elements.catchBtn.disabled = true;
+        elements.catchFeedbackContainer.classList.add('hidden');
+        elements.pokemonSprite.classList.add('hidden'); // Hide until loaded
 
         try {
             const ids = await fetchIdsForHabitat(state.location.habitat);
@@ -200,7 +201,19 @@ document.addEventListener('DOMContentLoaded', () => {
             state.currentIsShiny = window.forceShiny || Math.random() < CONFIG.SHINY_CHANCE;
             state.currentAbility = data.abilities[Math.floor(Math.random() * data.abilities.length)];
 
-            updateUI();
+            // Pre-load image to prevent flash
+            const spriteUrl = (state.currentIsShiny && data.sprites.front_shiny) ? data.sprites.front_shiny : data.sprites.front_default;
+            if (spriteUrl) {
+                const img = new Image();
+                img.onload = () => {
+                    updateUI();
+                    elements.pokemonSprite.classList.remove('hidden');
+                    resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+                };
+                img.src = spriteUrl;
+            } else {
+                updateUI();
+            }
 
             // Cry
             const cryUrl = data.cries.legacy || data.cries.latest;
@@ -210,13 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
-            console.error(error);
+            console.error('Fetch failed:', error);
             elements.pokemonName.textContent = 'Error';
         } finally {
             elements.pokemonCard.classList.remove('fetching');
             elements.generateBtn.disabled = false;
-            elements.catchBtn.classList.remove('hidden');
-            resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+            elements.catchBtn.disabled = false;
         }
     }
 
@@ -250,11 +262,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function attemptCatch() {
         if (!state.currentPokemon || state.balls <= 0) {
-            if (state.balls <= 0) alert('No Balls left!');
+            if (state.balls <= 0) {
+                elements.catchFeedbackContainer.classList.remove('hidden');
+                elements.catchFeedback.textContent = 'NO BALLS!';
+                return;
+            }
             return;
         }
 
         elements.catchBtn.disabled = true;
+        elements.generateBtn.disabled = true;
         state.balls--;
         updateStatusBar();
 
@@ -269,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Feedback
             elements.pokemonSprite.classList.add('hidden');
-            elements.catchFeedback.classList.remove('hidden');
+            elements.catchFeedbackContainer.classList.remove('hidden');
             elements.catchFeedback.textContent = success ? 'CAUGHT!' : 'ESCAPED!';
             elements.catchFeedback.style.color = success ? '#4ade80' : '#f87171';
 
@@ -287,13 +304,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Auto-next after 1.5s
             setTimeout(() => {
-                elements.catchBtn.disabled = false;
                 fetchPokemon();
             }, 1500);
 
         } catch (e) {
             console.error('Catch failed', e);
             elements.catchBtn.disabled = false;
+            elements.generateBtn.disabled = false;
         }
     }
 
