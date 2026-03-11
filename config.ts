@@ -33,7 +33,7 @@ export const CONFIG = {
 
     // Animations
     ANIMATIONS: {
-        POP_IN_FLOAT: 'popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, float 4s ease-in-out infinite 0.6s',
+        POP_IN_FLOAT: 'float 4s ease-in-out infinite',
         FLOAT: 'float 4s ease-in-out infinite'
     }
 };
@@ -44,4 +44,3 @@ const BALL_DEFS = {
     ULTRABALL: { name: 'Ultra Ball', multiplier: 2.0 },
     MASTERBALL: { name: 'Master Ball', multiplier: 255 }
 };
-

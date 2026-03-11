@@ -214,27 +214,25 @@ document.addEventListener('DOMContentLoaded', () => {
             state.currentIsShiny = window.forceShiny || Math.random() < CONFIG.SHINY_CHANCE;
             state.currentAbility = data.abilities[Math.floor(Math.random() * data.abilities.length)];
 
-            // Pre-load image to prevent flash
-            const spriteUrl = (state.currentIsShiny && data.sprites.front_shiny) ? data.sprites.front_shiny : data.sprites.front_default;
-            if (spriteUrl) {
-                const img = new Image();
-                img.onload = () => {
-                    updateUI();
+            // Construction sprite URL directly for better reliability
+            const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+            const spriteUrl = state.currentIsShiny 
+                ? `${baseUrl}/shiny/${id}.png`
+                : `${baseUrl}/${id}.png`;
 
-                    // Small artificial delay for "Who's That Pokemon" feels + stability
-                    setTimeout(() => {
-                        elements.pokemonSprite.classList.remove('hidden');
-                        resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
-                        elements.generateBtn.disabled = false;
-                        elements.catchBtn.disabled = false;
-                    }, 500);
-                };
-                img.src = spriteUrl;
-            } else {
+            const img = new Image();
+            img.onload = () => {
                 updateUI();
-                elements.generateBtn.disabled = false;
-                elements.catchBtn.disabled = false;
-            }
+
+                // Small artificial delay for "Who's That Pokemon" feels + stability
+                setTimeout(() => {
+                    elements.pokemonSprite.classList.remove('hidden');
+                    resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+                    elements.generateBtn.disabled = false;
+                    elements.catchBtn.disabled = false;
+                }, 500);
+            };
+            img.src = spriteUrl;
 
             // Cry
             const cryUrl = data.cries.legacy || data.cries.latest;
@@ -261,8 +259,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pokemonId.textContent = p.id.toString().padStart(3, '0');
         elements.pokemonCard.classList.toggle('shiny', state.currentIsShiny);
 
-        const spriteUrl = (state.currentIsShiny && p.sprites.front_shiny) ? p.sprites.front_shiny : p.sprites.front_default;
-        elements.pokemonSprite.src = spriteUrl || '';
+        const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+        const spriteUrl = state.currentIsShiny 
+            ? `${baseUrl}/shiny/${p.id}.png`
+            : `${baseUrl}/${p.id}.png`;
+        elements.pokemonSprite.src = spriteUrl;
 
         elements.pokemonTypes.innerHTML = '';
         p.types.forEach(t => {
@@ -349,15 +350,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pageItems.forEach(pkmn => {
             const item = document.createElement('div');
+            const isShiny = pkmn.isShiny === true; // Force boolean check
+            
             item.className = 'storage-item';
-            if (pkmn.isShiny) item.classList.add('shiny-item');
+            if (isShiny) item.classList.add('shiny-item');
 
             const img = document.createElement('img');
-            img.src = (pkmn.isShiny && pkmn.sprites.front_shiny) ? pkmn.sprites.front_shiny : pkmn.sprites.front_default || '';
+            // Use direct URL construction for high reliability
+            const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+            img.src = isShiny 
+                ? `${baseUrl}/shiny/${pkmn.id}.png`
+                : `${baseUrl}/${pkmn.id}.png`;
 
             const name = document.createElement('span');
             name.className = 'name';
-            name.textContent = pkmn.name;
+            name.textContent = isShiny ? `✨ ${pkmn.name}` : pkmn.name;
 
             const relBtn = document.createElement('button');
             relBtn.className = 'release-btn';
@@ -399,4 +406,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 });
-
