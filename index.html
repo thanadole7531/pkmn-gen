@@ -14,16 +14,38 @@
 
 <body>
     <div class="header-top fixed-top-right">
-        <div class="currency-badge">
-            <span class="currency-icon">₽</span>
-            <span id="player-currency">--</span>
+        <div class="currency-container">
+            <div class="currency-badge">
+                <span class="currency-icon">₽</span>
+                <span id="player-currency">--</span>
+            </div>
+            <div class="shop-container" id="shop-container">
+                <div class="shop-title">Poke Mart</div>
+                <div class="shop-items" id="shop-items-container">
+                    <!-- Shop items injected here -->
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="fixed-bottom-left">
-        <div class="ball-badge">
-            <span id="current-ball-name" class="label">Poké Ball</span>
-            <span id="ball-count" class="value">--</span>
+        <div class="ball-inventory">
+            <div class="ball-slot active" data-ball="POKEBALL">
+                <div class="ball-icon poke-ball"></div>
+                <span class="ball-count-overlay" id="count-POKEBALL">20</span>
+            </div>
+            <div class="ball-slot" data-ball="GREATBALL">
+                <div class="ball-icon great-ball"></div>
+                <span class="ball-count-overlay" id="count-GREATBALL">0</span>
+            </div>
+            <div class="ball-slot" data-ball="ULTRABALL">
+                <div class="ball-icon ultra-ball"></div>
+                <span class="ball-count-overlay" id="count-ULTRABALL">0</span>
+            </div>
+            <div class="ball-slot" data-ball="MASTERBALL">
+                <div class="ball-icon master-ball"></div>
+                <span class="ball-count-overlay" id="count-MASTERBALL">0</span>
+            </div>
         </div>
     </div>
 
@@ -43,7 +65,9 @@
             <div class="status-container">
                 <div class="status-box">
                     <span class="label">Location:</span>
-                    <span id="current-location" class="value">---</span>
+                    <select id="location-select" class="location-dropdown">
+                        <!-- Locations injected here -->
+                    </select>
                 </div>
             </div>
 

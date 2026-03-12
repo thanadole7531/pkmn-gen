@@ -106,35 +106,123 @@ body {
     letter-spacing: 0.5px;
 }
 
-.ball-badge {
+.currency-container {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-end;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    font-weight: 600;
-    transition: transform 0.3s ease, background 0.3s ease;
-    cursor: default;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.ball-badge:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.1);
+.shop-container {
+    background: var(--card-bg);
+    border: 3px solid #fff;
+    padding: 0.75rem;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+    min-width: 200px;
 }
 
-.ball-badge .label {
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-}
-
-.ball-badge .value {
+.shop-title {
+    font-size: 0.5rem;
     color: #fbbf24;
-    font-size: 0.8rem;
-    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    margin-bottom: 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.3rem;
+}
+
+.shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.shop-item-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 0.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.45rem;
+}
+
+.shop-item-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: #fbbf24;
+}
+
+.shop-item-btn .ball-price {
+    color: #fbbf24;
+}
+
+.ball-inventory {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+}
+
+.ball-slot {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ball-slot:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-5px);
+}
+
+.ball-slot.active {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+}
+
+.ball-slot.active::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border: 2px solid #fbbf24;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+.ball-icon {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.poke-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'); }
+.great-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png'); }
+.ultra-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png'); }
+.master-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png'); }
+
+.ball-count-overlay {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #000;
+    color: #fff;
+    font-size: 0.5rem;
+    padding: 2px 4px;
+    border: 1px solid #fff;
+    min-width: 20px;
+    text-align: center;
 }
 
 .card {
@@ -550,6 +638,23 @@ h2 {
     text-shadow: 2px 2px 0 #000;
 }
 
+.location-dropdown {
+    background: transparent;
+    border: none;
+    color: #fbd34d;
+    font-family: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+    outline: none;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.location-dropdown option {
+    background: #1e293b;
+    color: #fff;
+    padding: 0.5rem;
+}
+
 /* Action Buttons */
 .action-buttons {
     display: flex;
@@ -883,4 +988,92 @@ h2 {
         transform: scale(1.5) rotate(90deg);
         opacity: 0.2;
     }
+}
+
+.pokeball-throw {
+    animation: catchPokeball 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
+}
+
+@keyframes catchPokeball {
+    0% {
+        transform: translateY(-200px) scale(2);
+        opacity: 0;
+    }
+    15% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: translateY(-20px) scale(1);
+    }
+    35% {
+        transform: translateY(0) scale(1);
+    }
+    45% {
+        transform: translateY(-10px) scale(1);
+    }
+    55% {
+        transform: translateY(0) scale(1);
+    }
+    60%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.escape-flash {
+    animation: escapeFlash 0.5s ease-out forwards;
+}
+
+@keyframes escapeFlash {
+    0% { filter: brightness(2) contrast(1.5); }
+    100% { filter: brightness(1) contrast(1); }
+}
+
+.pokeball-shake {
+    animation: shakePokeball 0.8s ease-in-out forwards !important;
+}
+
+@keyframes shakePokeball {
+    0% { transform: scale(1) rotate(0deg); }
+    15% { transform: scale(1) rotate(-20deg) translateX(-10px); }
+    30% { transform: scale(1) rotate(20deg) translateX(10px); }
+    45% { transform: scale(1) rotate(-20deg) translateX(-10px); }
+    60% { transform: scale(1) rotate(20deg) translateX(10px); }
+    75% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.pokeball-catch {
+    animation: catchSuccess 1s ease-out forwards !important;
+}
+
+@keyframes catchSuccess {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.5) drop-shadow(0 0 10px #fde047); }
+    100% { 
+        filter: brightness(0.8);
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}
+
+.bought-flash {
+    animation: boughtFlash 0.3s ease-out;
+}
+
+@keyframes boughtFlash {
+    0% { background: rgba(74, 222, 128, 0.2); transform: scale(1); }
+    50% { background: rgba(74, 222, 128, 0.4); transform: scale(1.05); }
+    100% { background: rgba(255, 255, 255, 0.05); transform: scale(1); }
+}
+
+.error-flash {
+    animation: errorFlash 0.5s ease-in-out;
+}
+
+@keyframes errorFlash {
+    0%, 100% { color: #fff; transform: translateX(0); }
+    20%, 60% { color: #f87171; transform: translateX(-5px); }
+    40%, 80% { color: #f87171; transform: translateX(5px); }
 }

@@ -38,10 +38,33 @@ interface CaughtPokemon extends PokemonData {
 }
 
 // --- Global State ---
+const savedBalls = localStorage.getItem('pkmn_balls');
+let initialBalls: Record<string, number>;
+try {
+    const parsed = JSON.parse(savedBalls || 'null');
+    if (parsed && typeof parsed === 'object') {
+        initialBalls = parsed;
+    } else {
+        // Migration or default
+        initialBalls = {
+            ...CONFIG.STARTING_BALLS,
+            ...(typeof parsed === 'number' ? { POKEBALL: parsed } : {})
+        };
+    }
+} catch (e) {
+    initialBalls = { ...CONFIG.STARTING_BALLS };
+}
+
+// Ensure all ball types exist
+Object.keys(CONFIG.BALLS).forEach(key => {
+    if (!(key in initialBalls)) initialBalls[key] = 0;
+});
+
 const state = {
     currency: Number(localStorage.getItem('pkmn_currency')) || CONFIG.STARTING_CURRENCY,
-    balls: Number(localStorage.getItem('pkmn_balls')) || CONFIG.STARTING_BALLS,
-    location: CONFIG.LOCATIONS.find(l => l.habitat === CONFIG.DEFAULT_LOCATION) || CONFIG.LOCATIONS[0],
+    balls: initialBalls,
+    currentBall: (localStorage.getItem('pkmn_current_ball') as keyof typeof CONFIG.BALLS) || CONFIG.DEFAULT_BALL,
+    location: CONFIG.LOCATIONS.find(l => l.habitat === (localStorage.getItem('pkmn_location') || CONFIG.DEFAULT_LOCATION)) || CONFIG.LOCATIONS[0],
     pcStorage: JSON.parse(localStorage.getItem('pkmn_storage') || '[]') as CaughtPokemon[],
     currentPage: 1,
     itemsPerPage: 9,
@@ -82,9 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Status Bar
         currency: document.getElementById('player-currency') as HTMLElement,
-        location: document.getElementById('current-location') as HTMLElement,
-        ballName: document.getElementById('current-ball-name') as HTMLElement,
-        ballCount: document.getElementById('ball-count') as HTMLElement,
+        locationSelect: document.getElementById('location-select') as HTMLSelectElement,
+
+        // Ball Inventory
+        ballSlots: document.querySelectorAll('.ball-inventory .ball-slot'),
+
+        // Shop
+        shopContainer: document.getElementById('shop-items-container') as HTMLElement,
 
         // Storage UI
         storageGrid: document.getElementById('storage-grid') as HTMLElement,
@@ -98,20 +125,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialization ---
     const init = () => {
+        populateLocations();
+        populateShop();
         updateStatusBar();
         setupEventListeners();
         switchTab('generator-tab');
         renderStorage();
     };
 
+    const populateLocations = () => {
+        if (!elements.locationSelect) return;
+        elements.locationSelect.innerHTML = '';
+        CONFIG.LOCATIONS.forEach((loc, index) => {
+            const option = document.createElement('option');
+            option.value = index.toString();
+            option.textContent = loc.name;
+            elements.locationSelect.appendChild(option);
+        });
+
+        // Match current state
+        const currentIndex = CONFIG.LOCATIONS.findIndex(l => l.name === state.location.name);
+        if (currentIndex !== -1) {
+            elements.locationSelect.value = currentIndex.toString();
+        }
+    };
+
+    const populateShop = () => {
+        if (!elements.shopContainer) return;
+        elements.shopContainer.innerHTML = '';
+
+        Object.entries(CONFIG.BALLS).forEach(([key, ball]) => {
+            const btn = document.createElement('button');
+            btn.className = 'shop-item-btn';
+            btn.dataset.ball = key;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'ball-name';
+            const quantity = key === 'MASTERBALL' ? 1 : 10;
+            nameSpan.textContent = `${ball.name}${quantity > 1 ? ' x' + quantity : ''}`;
+
+            const priceSpan = document.createElement('span');
+            priceSpan.className = 'ball-price';
+            priceSpan.textContent = `${ball.price >= 1000 ? (ball.price / 1000) + 'K' : ball.price}₽`;
+
+            btn.appendChild(nameSpan);
+            btn.appendChild(priceSpan);
+
+            btn.addEventListener('click', () => {
+                const ballDef = CONFIG.BALLS[key as keyof typeof CONFIG.BALLS];
+                if (ballDef && state.currency >= ballDef.price) {
+                    state.currency -= ballDef.price;
+                    state.balls[key] += quantity;
+                    updateStatusBar();
+
+                    btn.classList.add('bought-flash');
+                    setTimeout(() => btn.classList.remove('bought-flash'), 300);
+                } else {
+                    elements.currency.classList.add('error-flash');
+                    setTimeout(() => elements.currency.classList.remove('error-flash'), 500);
+                }
+            });
+
+            elements.shopContainer.appendChild(btn);
+        });
+    };
+
     const updateStatusBar = () => {
         if (elements.currency) elements.currency.textContent = state.currency.toLocaleString();
-        if (elements.location) elements.location.textContent = state.location.name;
-        if (elements.ballName) elements.ballName.textContent = CONFIG.BALLS[CONFIG.DEFAULT_BALL].name;
-        if (elements.ballCount) elements.ballCount.textContent = state.balls.toString();
+
+        // Update Ball Counts and Active State
+        Object.keys(state.balls).forEach(ballKey => {
+            const countEl = document.getElementById(`count-${ballKey}`);
+            if (countEl) {
+                countEl.textContent = state.balls[ballKey].toString();
+            }
+        });
+
+        elements.ballSlots.forEach(slot => {
+            const ball = (slot as HTMLElement).dataset.ball;
+            slot.classList.toggle('active', ball === state.currentBall);
+        });
 
         localStorage.setItem('pkmn_currency', state.currency.toString());
-        localStorage.setItem('pkmn_balls', state.balls.toString());
+        localStorage.setItem('pkmn_balls', JSON.stringify(state.balls));
+        localStorage.setItem('pkmn_current_ball', state.currentBall);
     };
 
     const setupEventListeners = () => {
@@ -126,6 +223,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // Generator
         elements.generateBtn.addEventListener('click', fetchPokemon);
         elements.catchBtn.addEventListener('click', attemptCatch);
+
+        // Location Changing
+        elements.locationSelect.addEventListener('change', () => {
+            const index = parseInt(elements.locationSelect.value);
+            state.location = CONFIG.LOCATIONS[index];
+            localStorage.setItem('pkmn_location', state.location.habitat); // Store habitat for restoration
+            updateStatusBar();
+        });
+
+        // Ball Selection
+        elements.ballSlots.forEach(slot => {
+            slot.addEventListener('click', () => {
+                const ball = (slot as HTMLElement).dataset.ball as keyof typeof CONFIG.BALLS;
+                if (ball) {
+                    state.currentBall = ball;
+                    updateStatusBar();
+                }
+            });
+        });
 
         // PC Storage
         elements.prevPage.addEventListener('click', () => {
@@ -216,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Construction sprite URL directly for better reliability
             const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
-            const spriteUrl = state.currentIsShiny 
+            const spriteUrl = state.currentIsShiny
                 ? `${baseUrl}/shiny/${id}.png`
                 : `${baseUrl}/${id}.png`;
 
@@ -260,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pokemonCard.classList.toggle('shiny', state.currentIsShiny);
 
         const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
-        const spriteUrl = state.currentIsShiny 
+        const spriteUrl = state.currentIsShiny
             ? `${baseUrl}/shiny/${p.id}.png`
             : `${baseUrl}/${p.id}.png`;
         elements.pokemonSprite.src = spriteUrl;
@@ -282,8 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function attemptCatch() {
-        if (!state.currentPokemon || state.balls <= 0) {
-            if (state.balls <= 0) {
+        const currentBallCount = state.balls[state.currentBall];
+        if (!state.currentPokemon || currentBallCount <= 0) {
+            if (currentBallCount <= 0) {
                 elements.catchFeedbackContainer.classList.remove('hidden');
                 elements.catchFeedback.textContent = 'NO BALLS!';
                 elements.catchFeedback.style.color = '#f87171';
@@ -298,41 +415,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.catchBtn.disabled = true;
         elements.generateBtn.disabled = true;
-        state.balls--;
+        state.balls[state.currentBall]--;
         updateStatusBar();
 
         try {
             const res = await fetch(state.currentPokemon.species.url);
             const speciesData = await res.json();
-            const baseRate = speciesData.capture_rate;
-            const ballMult = CONFIG.BALLS[CONFIG.DEFAULT_BALL].multiplier;
+            const baseRate = speciesData.capture_rate; // 1-255
+            const ballMult = CONFIG.BALLS[state.currentBall].multiplier;
 
-            const chance = (baseRate * ballMult) / 255;
-            const success = Math.random() < chance;
+            // Updated catch calculation mimicking closer to game logic
+            const maxHp = 100; // Simplified
+            const currentHp = 100; // Simplified
+            const a = ((3 * maxHp - 2 * currentHp) * (baseRate * ballMult)) / (3 * maxHp);
+            const catchProbability = a / 255;
 
-            // Feedback
-            elements.pokemonSprite.classList.add('hidden');
+            // Get selected ball sprite
+            const ballKey = state.currentBall.toLowerCase().replace('ball', '-ball');
+            const ballSpriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${ballKey}.png`;
+
+            // Save original Pokemon Sprite to restore later
+            const p = state.currentPokemon;
+            const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+            const originalSpriteUrl = state.currentIsShiny
+                ? `${baseUrl}/shiny/${p.id}.png`
+                : `${baseUrl}/${p.id}.png`;
+
+            // Step 1: Throw ball animation
+            resetAnimation(elements.pokemonSprite, 'none');
+            elements.pokemonSprite.src = ballSpriteUrl;
+            elements.pokemonSprite.classList.add('pokeball-throw');
+
+            // Wait for throw animation to finish
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            elements.pokemonSprite.classList.remove('pokeball-throw');
+
+            // Calculate shakes based on probability
+            let shakes = 0;
+            if (state.currentBall === 'MASTERBALL' || catchProbability >= 1) {
+                shakes = 4;
+            } else {
+                const b = 1048560 / Math.sqrt(Math.sqrt(16711680 / a));
+                for (let i = 0; i < 4; i++) {
+                    if (Math.floor(Math.random() * 65536) < b) {
+                        shakes++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            // Cap shakes to 3, 4 means caught
+            const actualShakes = Math.min(shakes, 3);
+            const caught = shakes >= 4;
+
+            // Step 2: Shake animation
+            for (let i = 0; i < actualShakes; i++) {
+                elements.pokemonSprite.classList.add('pokeball-shake');
+                resetAnimation(elements.pokemonSprite, 'shakePokeball 0.8s ease-in-out forwards');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                elements.pokemonSprite.classList.remove('pokeball-shake');
+                await new Promise(resolve => setTimeout(resolve, 400)); // Pause between shakes
+            }
+
+            // Step 3: Result
             elements.catchFeedbackContainer.classList.remove('hidden');
-            elements.catchFeedback.textContent = success ? 'CAUGHT!' : 'ESCAPED!';
-            elements.catchFeedback.style.color = success ? '#4ade80' : '#f87171';
 
-            if (success) {
-                const caught: CaughtPokemon = {
+            if (caught) {
+                elements.pokemonSprite.classList.add('pokeball-catch');
+                elements.catchFeedback.textContent = 'CAUGHT!';
+                elements.catchFeedback.style.color = '#4ade80';
+
+                const caughtPokemon: CaughtPokemon = {
                     ...state.currentPokemon,
                     uuid: crypto.randomUUID(),
                     caughtDate: Date.now(),
                     isShiny: state.currentIsShiny,
                     abilityStatus: state.currentAbility!
                 };
-                state.pcStorage.unshift(caught); // Add to start
+                state.pcStorage.unshift(caughtPokemon);
                 localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
-            }
 
-            // Auto-next after 1.5s
-            setTimeout(() => {
-                elements.catchFeedbackContainer.classList.add('hidden');
-                fetchPokemon();
-            }, 1500);
+                // Auto-next after 1.5s
+                setTimeout(() => {
+                    elements.catchFeedbackContainer.classList.add('hidden');
+                    elements.pokemonSprite.classList.remove('pokeball-catch');
+                    fetchPokemon();
+                }, 1500);
+
+            } else {
+                elements.pokemonSprite.classList.add('escape-flash');
+
+                const fled = Math.random() < (CONFIG.FLEE_CHANCE || 0.15);
+                elements.catchFeedback.textContent = fled ? 'ESCAPED!' : 'FAILED!';
+                elements.catchFeedback.style.color = '#f87171';
+
+                // Restore original Pokémon sprite
+                setTimeout(() => {
+                    elements.pokemonSprite.classList.remove('escape-flash');
+
+                    if (fled) {
+                        // Pokemon ran away
+                        elements.pokemonSprite.classList.add('hidden');
+                        setTimeout(() => {
+                            elements.catchFeedbackContainer.classList.add('hidden');
+                            fetchPokemon();
+                        }, 1500);
+                    } else {
+                        // Stayed for another try
+                        elements.pokemonSprite.src = originalSpriteUrl;
+                        resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.FLOAT);
+
+                        setTimeout(() => {
+                            elements.catchFeedbackContainer.classList.add('hidden');
+                            elements.catchBtn.disabled = false;
+                            elements.generateBtn.disabled = false;
+                        }, 1500);
+                    }
+                }, 500);
+            }
 
         } catch (e) {
             console.error('Catch failed', e);
@@ -351,14 +552,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pageItems.forEach(pkmn => {
             const item = document.createElement('div');
             const isShiny = pkmn.isShiny === true; // Force boolean check
-            
+
             item.className = 'storage-item';
             if (isShiny) item.classList.add('shiny-item');
 
             const img = document.createElement('img');
             // Use direct URL construction for high reliability
             const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
-            img.src = isShiny 
+            img.src = isShiny
                 ? `${baseUrl}/shiny/${pkmn.id}.png`
                 : `${baseUrl}/${pkmn.id}.png`;
 
@@ -389,8 +590,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const releasePokemon = (uuid: string) => {
         const index = state.pcStorage.findIndex(p => p.uuid === uuid);
         if (index !== -1) {
+            const pkmn = state.pcStorage[index];
+            const multiplier = pkmn.isShiny ? (CONFIG.SHINY_RELEASE_MULTIPLIER || 100) : 1;
+            const reward = CONFIG.REWARD_RELEASE * multiplier;
+
             state.pcStorage.splice(index, 1);
-            state.currency += CONFIG.REWARD_RELEASE;
+            state.currency += reward;
             localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
             updateStatusBar();
             renderStorage();
