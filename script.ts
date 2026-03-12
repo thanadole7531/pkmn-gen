@@ -336,20 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `${baseUrl}/shiny/${id}.png`
                 : `${baseUrl}/${id}.png`;
 
-            const img = new Image();
-            img.onload = () => {
-                updateUI();
-
-                // Small artificial delay for "Who's That Pokemon" feels + stability
-                setTimeout(() => {
-                    elements.pokemonSprite.classList.remove('hidden');
-                    resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
-                    elements.generateBtn.disabled = false;
-                    elements.catchBtn.disabled = false;
-                }, 500);
-            };
-            img.src = spriteUrl;
-
             // Cry
             const cryUrl = data.cries.legacy || data.cries.latest;
             if (cryUrl && elements.audio) {
@@ -357,11 +343,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.audio.play().catch(() => { });
             }
 
+            // Wait for image to load
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = spriteUrl;
+            });
+
+            updateUI();
+
+            // Delay for animation sync
+            setTimeout(() => {
+                elements.pokemonCard.classList.remove('fetching');
+                elements.pokemonSprite.classList.remove('hidden');
+                resetAnimation(elements.pokemonSprite, CONFIG.ANIMATIONS.POP_IN_FLOAT);
+                
+                const animEls = [
+                    elements.pokemonId.parentElement,
+                    elements.pokemonName,
+                    elements.pokemonTypes,
+                    elements.abilityContainer
+                ];
+
+                animEls.forEach(el => {
+                    if (el && !el.classList.contains('hidden')) {
+                        el.classList.remove('fade-up-text');
+                        void el.offsetWidth;
+                        el.classList.add('fade-up-text');
+                    }
+                });
+
+                elements.generateBtn.disabled = false;
+                elements.catchBtn.disabled = false;
+            }, 300);
+
         } catch (error) {
             console.error('Fetch failed:', error);
             elements.pokemonName.textContent = 'Error';
             elements.generateBtn.disabled = false;
-        } finally {
             elements.pokemonCard.classList.remove('fetching');
         }
     }
@@ -394,6 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.abilityName.textContent = state.currentAbility.ability.name.replace(/-/g, ' ');
             elements.abilityName.classList.toggle('hidden-ability', state.currentAbility.is_hidden);
             if (state.currentAbility.is_hidden) elements.abilityName.textContent += ' (Hidden)';
+        } else {
+            elements.abilityContainer.classList.add('hidden');
         }
     };
 

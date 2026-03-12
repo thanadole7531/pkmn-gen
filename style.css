@@ -117,7 +117,7 @@ body {
     background: var(--card-bg);
     border: 3px solid #fff;
     padding: 0.75rem;
-    box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
     min-width: 200px;
 }
 
@@ -126,7 +126,7 @@ body {
     color: #fbbf24;
     margin-bottom: 0.5rem;
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 0.3rem;
 }
 
@@ -137,8 +137,8 @@ body {
 }
 
 .shop-item-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
     padding: 0.4rem;
     display: flex;
@@ -150,7 +150,7 @@ body {
 }
 
 .shop-item-btn:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-color: #fbbf24;
 }
 
@@ -168,25 +168,35 @@ body {
     position: relative;
     width: 60px;
     height: 60px;
-    background: rgba(255,255,255,0.05);
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        -2px 0 0 0 rgba(255, 255, 255, 0.2),
+        2px 0 0 0 rgba(255, 255, 255, 0.2),
+        0 -2px 0 0 rgba(255, 255, 255, 0.2),
+        0 2px 0 0 rgba(255, 255, 255, 0.2),
+        2px 2px 0 0 rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, background 0.2s;
 }
 
 .ball-slot:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-5px);
 }
 
 .ball-slot.active {
     border-color: #fbbf24;
     background: rgba(251, 191, 36, 0.1);
-    box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
+    box-shadow:
+        -2px 0 0 0 #fbbf24,
+        2px 0 0 0 #fbbf24,
+        0 -2px 0 0 #fbbf24,
+        0 2px 0 0 #fbbf24,
+        0 0 15px rgba(251, 191, 36, 0.3);
 }
 
 .ball-slot.active::after {
@@ -194,8 +204,8 @@ body {
     position: absolute;
     inset: -4px;
     border: 2px solid #fbbf24;
-    border-radius: 10px;
     pointer-events: none;
+    z-index: 1;
 }
 
 .ball-icon {
@@ -207,10 +217,21 @@ body {
     background-position: center;
 }
 
-.poke-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'); }
-.great-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png'); }
-.ultra-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png'); }
-.master-ball { background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png'); }
+.poke-ball {
+    background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png');
+}
+
+.great-ball {
+    background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png');
+}
+
+.ultra-ball {
+    background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png');
+}
+
+.master-ball {
+    background-image: url('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png');
+}
 
 .ball-count-overlay {
     position: absolute;
@@ -223,6 +244,7 @@ body {
     border: 1px solid #fff;
     min-width: 20px;
     text-align: center;
+    z-index: 2;
 }
 
 .card {
@@ -230,6 +252,8 @@ body {
     border: 4px solid #fff;
     padding: 2.5rem;
     width: 100%;
+    min-height: 480px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -313,6 +337,9 @@ h2 {
     margin-bottom: 1rem;
     letter-spacing: 0.5px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    max-width: 100%;
+    word-break: break-word;
+    line-height: 1.4;
 }
 
 .types-container {
@@ -722,7 +749,7 @@ h2 {
 .storage-item.shiny-item {
     background: radial-gradient(circle at center, rgba(251, 191, 36, 0.25) 0%, rgba(30, 41, 59, 0.8) 100%);
     border-color: #fde047;
-    box-shadow: 
+    box-shadow:
         inset 0 0 20px rgba(251, 191, 36, 0.3),
         0 0 10px rgba(251, 191, 36, 0.2);
     overflow: hidden;
@@ -819,17 +846,16 @@ h2 {
     /* Hide old pokemon immediately */
 }
 
-.fetching #pokemon-name {
-    opacity: 0.5;
+.fetching #pokemon-name,
+.fetching .id-badge,
+.fetching .types-container,
+.fetching .ability-container {
+    opacity: 0 !important;
+    transition: none !important;
 }
 
 .fetching .loader {
     display: block !important;
-}
-
-.fetching .id-badge,
-.fetching .types-container {
-    opacity: 0.5;
 }
 
 /* Shiny Styles */
@@ -883,6 +909,22 @@ h2 {
 }
 
 /* Animations */
+.fade-up-text {
+    animation: fadeUpText 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes fadeUpText {
+    0% {
+        opacity: 0;
+        transform: translateY(15px) scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -999,23 +1041,30 @@ h2 {
         transform: translateY(-200px) scale(2);
         opacity: 0;
     }
+
     15% {
         transform: translateY(0) scale(1);
         opacity: 1;
     }
+
     25% {
         transform: translateY(-20px) scale(1);
     }
+
     35% {
         transform: translateY(0) scale(1);
     }
+
     45% {
         transform: translateY(-10px) scale(1);
     }
+
     55% {
         transform: translateY(0) scale(1);
     }
-    60%, 100% {
+
+    60%,
+    100% {
         transform: translateY(0) scale(1);
         opacity: 1;
     }
@@ -1026,8 +1075,13 @@ h2 {
 }
 
 @keyframes escapeFlash {
-    0% { filter: brightness(2) contrast(1.5); }
-    100% { filter: brightness(1) contrast(1); }
+    0% {
+        filter: brightness(2) contrast(1.5);
+    }
+
+    100% {
+        filter: brightness(1) contrast(1);
+    }
 }
 
 .pokeball-shake {
@@ -1035,13 +1089,33 @@ h2 {
 }
 
 @keyframes shakePokeball {
-    0% { transform: scale(1) rotate(0deg); }
-    15% { transform: scale(1) rotate(-20deg) translateX(-10px); }
-    30% { transform: scale(1) rotate(20deg) translateX(10px); }
-    45% { transform: scale(1) rotate(-20deg) translateX(-10px); }
-    60% { transform: scale(1) rotate(20deg) translateX(10px); }
-    75% { transform: scale(1) rotate(0deg); }
-    100% { transform: scale(1) rotate(0deg); }
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    15% {
+        transform: scale(1) rotate(-20deg) translateX(-10px);
+    }
+
+    30% {
+        transform: scale(1) rotate(20deg) translateX(10px);
+    }
+
+    45% {
+        transform: scale(1) rotate(-20deg) translateX(-10px);
+    }
+
+    60% {
+        transform: scale(1) rotate(20deg) translateX(10px);
+    }
+
+    75% {
+        transform: scale(1) rotate(0deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
 }
 
 .pokeball-catch {
@@ -1049,9 +1123,15 @@ h2 {
 }
 
 @keyframes catchSuccess {
-    0% { filter: brightness(1); }
-    50% { filter: brightness(1.5) drop-shadow(0 0 10px #fde047); }
-    100% { 
+    0% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.5) drop-shadow(0 0 10px #fde047);
+    }
+
+    100% {
         filter: brightness(0.8);
         transform: scale(0.8);
         opacity: 0.5;
@@ -1063,9 +1143,20 @@ h2 {
 }
 
 @keyframes boughtFlash {
-    0% { background: rgba(74, 222, 128, 0.2); transform: scale(1); }
-    50% { background: rgba(74, 222, 128, 0.4); transform: scale(1.05); }
-    100% { background: rgba(255, 255, 255, 0.05); transform: scale(1); }
+    0% {
+        background: rgba(74, 222, 128, 0.2);
+        transform: scale(1);
+    }
+
+    50% {
+        background: rgba(74, 222, 128, 0.4);
+        transform: scale(1.05);
+    }
+
+    100% {
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1);
+    }
 }
 
 .error-flash {
@@ -1073,7 +1164,22 @@ h2 {
 }
 
 @keyframes errorFlash {
-    0%, 100% { color: #fff; transform: translateX(0); }
-    20%, 60% { color: #f87171; transform: translateX(-5px); }
-    40%, 80% { color: #f87171; transform: translateX(5px); }
+
+    0%,
+    100% {
+        color: #fff;
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        color: #f87171;
+        transform: translateX(-5px);
+    }
+
+    40%,
+    80% {
+        color: #f87171;
+        transform: translateX(5px);
+    }
 }

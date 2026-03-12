@@ -45,7 +45,7 @@ export const CONFIG = {
 
     // Animations
     ANIMATIONS: {
-        POP_IN_FLOAT: 'float 4s ease-in-out infinite',
+        POP_IN_FLOAT: 'popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, float 4s ease-in-out infinite 0.8s',
         FLOAT: 'float 4s ease-in-out infinite'
     }
 };
