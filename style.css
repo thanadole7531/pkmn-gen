@@ -32,7 +32,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -252,7 +252,7 @@ body {
     border: 4px solid #fff;
     padding: 2.5rem;
     width: 100%;
-    min-height: 480px;
+    height: 550px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -752,7 +752,6 @@ h2 {
     box-shadow:
         inset 0 0 20px rgba(251, 191, 36, 0.3),
         0 0 10px rgba(251, 191, 36, 0.2);
-    overflow: hidden;
 }
 
 .storage-item.shiny-item::before {
@@ -781,14 +780,17 @@ h2 {
 .storage-item.shiny-item::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(transparent, rgba(251, 191, 36, 0.1), transparent 30%);
-    animation: rotateGlow 6s linear infinite;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 20%, rgba(251, 191, 36, 0.15) 50%, transparent 80%);
+    background-size: 200% 100%;
+    animation: shinySweep 2.5s linear infinite;
     pointer-events: none;
     z-index: 1;
+}
+
+@keyframes shinySweep {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 /* Pagination */

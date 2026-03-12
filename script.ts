@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const name = document.createElement('span');
             name.className = 'name';
-            name.textContent = isShiny ? `✨ ${pkmn.name}` : pkmn.name;
+            name.textContent = pkmn.name;
 
             const relBtn = document.createElement('button');
             relBtn.className = 'release-btn';

@@ -1,7 +1,7 @@
 export const CONFIG = {
     // Game Options
     MAX_POKEMON: 1025,
-    SHINY_CHANCE: 1 / 80,
+    SHINY_CHANCE: 1 / 100,
     STARTING_CURRENCY: 500,
     AUDIO_VOLUME: 0.3,
     STARTING_BALLS: {
