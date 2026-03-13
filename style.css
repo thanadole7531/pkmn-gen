@@ -704,7 +704,7 @@ h2 {
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     width: 100%;
-    width: 480px;
+    width: 448px;
     min-height: 420px;
     /* Fixed height for 3 rows */
     margin: 1.5rem 0;
