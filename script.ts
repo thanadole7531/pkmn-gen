@@ -28,6 +28,7 @@ interface PokemonData {
     cries: { latest: string; legacy: string; };
     abilities: PokemonAbility[];
     species: { name: string; url: string; };
+    stats: { base_stat: number; stat: { name: string; }; }[];
 }
 
 interface CaughtPokemon extends PokemonData {
@@ -136,6 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
         abilityName: document.getElementById('pokemon-ability') as HTMLElement,
         catchFeedbackContainer: document.getElementById('catch-feedback-container') as HTMLElement,
         catchFeedback: document.getElementById('catch-feedback') as HTMLElement,
+
+        // Battle UI
+        startBattleBtn: document.getElementById('start-battle-btn') as HTMLButtonElement,
+        enemyName: document.getElementById('enemy-name') as HTMLElement,
+        enemyHp: document.getElementById('enemy-hp') as HTMLElement,
+        enemyHpText: document.getElementById('enemy-hp-text') as HTMLElement,
+        enemySprite: document.getElementById('enemy-sprite') as HTMLImageElement,
+        playerName: document.getElementById('player-name') as HTMLElement,
+        playerHp: document.getElementById('player-hp') as HTMLElement,
+        playerHpText: document.getElementById('player-hp-text') as HTMLElement,
+        playerSprite: document.getElementById('player-sprite') as HTMLImageElement,
 
         // Status Bar
         currency: document.getElementById('player-currency') as HTMLElement,
@@ -258,6 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.generateBtn.addEventListener('click', fetchPokemon);
         elements.catchBtn.addEventListener('click', attemptCatch);
 
+        // Battle
+        if (elements.startBattleBtn) {
+            elements.startBattleBtn.addEventListener('click', testBattle);
+        }
+
         // Location Changing
         elements.locationSelect.addEventListener('change', () => {
             const index = parseInt(elements.locationSelect.value);
@@ -322,6 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'generator-tab': elements.tabHeader.textContent = 'Encounter'; break;
                 case 'storage-tab': elements.tabHeader.textContent = 'PC Storage'; break;
                 case 'items-tab': elements.tabHeader.textContent = 'Items'; break;
+                case 'battle-tab': elements.tabHeader.textContent = 'Battle'; break;
             }
         }
 
@@ -692,6 +710,66 @@ document.addEventListener('DOMContentLoaded', () => {
             renderStorage();
         }
     };
+
+    // --- Battle Logic ---
+    async function testBattle() {
+        if (!elements.startBattleBtn) return;
+        elements.startBattleBtn.disabled = true;
+        
+        try {
+            // Pick two random pokemon IDs for enemy and player
+            const enemyId = Math.floor(Math.random() * CONFIG.MAX_POKEMON) + 1;
+            const playerId = Math.floor(Math.random() * CONFIG.MAX_POKEMON) + 1;
+            
+            const [enemyRes, playerRes] = await Promise.all([
+                fetch(`${CONFIG.API_BASE_URL}/${enemyId}`),
+                fetch(`${CONFIG.API_BASE_URL}/${playerId}`)
+            ]);
+            
+            if (!enemyRes.ok || !playerRes.ok) throw new Error('Failed to fetch battle pokemon');
+            
+            const enemyData: PokemonData = await enemyRes.json();
+            const playerData: PokemonData = await playerRes.json();
+            
+            elements.enemyName.textContent = enemyData.name.replace(/-/g, ' ');
+            elements.playerName.textContent = playerData.name.replace(/-/g, ' ');
+
+            // Calculate mock HP based on stats to be realistic
+            const enemyHpStat = enemyData.stats.find(s => s.stat.name === 'hp')?.base_stat || 100;
+            const playerHpStat = playerData.stats.find(s => s.stat.name === 'hp')?.base_stat || 100;
+            const enemyMaxHp = Math.floor(0.01 * (2 * enemyHpStat + 31 + Math.floor(0.25 * 252)) * 50) + 50 + 10;
+            const playerMaxHp = Math.floor(0.01 * (2 * playerHpStat + 31 + Math.floor(0.25 * 252)) * 50) + 50 + 10;
+
+            if (elements.enemyHpText) elements.enemyHpText.textContent = `${enemyMaxHp}/${enemyMaxHp}`;
+            if (elements.playerHpText) elements.playerHpText.textContent = `${playerMaxHp}/${playerMaxHp}`;
+
+            // Use normal base pixel sprites
+            const baseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+
+            // Enemy: front sprite
+            elements.enemySprite.src = `${baseUrl}/${enemyId}.png`;
+                
+            // Player: front sprite (will be mirrored in CSS)
+            elements.playerSprite.src = `${baseUrl}/${playerId}.png`;
+                
+            // Reset HP bars
+            elements.enemyHp.style.width = '100%';
+            elements.playerHp.style.width = '100%';
+            
+            // Add a test debuff
+            const debuffArea = document.getElementById('enemy-debuffs');
+            if (debuffArea) {
+                debuffArea.innerHTML = '<span class="debuff-icon" style="background: #a855f7;">PSN</span>';
+            }
+            
+        } catch (error) {
+            console.error('Test battle failed:', error);
+            elements.enemyName.textContent = 'Error';
+            elements.playerName.textContent = 'Error';
+        } finally {
+            elements.startBattleBtn.disabled = false;
+        }
+    }
 
     // --- Helpers ---
     const resetAnimation = (element: HTMLElement, animationName: string): void => {

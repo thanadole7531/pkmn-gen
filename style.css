@@ -33,12 +33,11 @@ body {
 .container {
     width: 100%;
     max-width: 800px;
-    padding: 2rem;
+    padding: 1rem 2rem 2rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    padding-top: 4rem;
 }
 
 .tab-content {
@@ -80,6 +79,19 @@ body {
 .header-top {
     display: flex;
     justify-content: flex-end;
+}
+
+.header-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.fixed-bottom-right {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
 }
 
 .currency-badge {
@@ -795,6 +807,184 @@ h2 {
     animation: shinySweep 2.5s linear infinite;
     pointer-events: none;
     z-index: 1;
+}
+
+/* Battle Arena */
+.battle-arena {
+    width: 100%;
+    max-width: 800px;
+    height: 500px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1.5rem;
+}
+
+.battle-box {
+    background: var(--card-bg);
+    border: 4px solid #fff;
+    box-shadow: -4px 0 0 0 #fff, 4px 0 0 0 #fff, 0 -4px 0 0 #fff, 0 4px 0 0 #fff, 4px 4px 0 0 rgba(0, 0, 0, 0.5);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    overflow: hidden;
+    position: relative;
+    gap: 1.5rem;
+}
+
+/* Ensure the stat box stays firmly at the top */
+.battle-box .stat-box {
+    align-self: flex-end;
+    /* Align the name plates to the right side of the inner space */
+    margin-bottom: auto;
+}
+
+.enemy-side,
+.player-side {
+    /* Kept class names for query semantics */
+}
+
+.stat-box {
+    /* Nostalgic inner stat look inside the box */
+    background: #ffffe0;
+    border: 3px solid #000;
+    border-radius: 4px 8px;
+    /* Classic gen 3 feel */
+    padding: 0.8rem;
+    width: 100%;
+    height: 25%;
+    /* Restore fixed width for consistency */
+    color: #333;
+    font-size: 0.8rem;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.pokemon-name {
+    flex-grow: 1;
+    /* Name takes priority */
+    margin-right: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pokemon-gender {
+    margin-right: auto;
+    font-size: 0.9rem;
+}
+
+.hp-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #4a4a4a;
+    border: 2px solid #000;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+.hp-bar-label {
+    color: #fbd34d;
+    font-size: 0.7rem;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.hp-bar-track {
+    flex-grow: 1;
+    height: 8px;
+    background: #333;
+    border: 1px solid #000;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.hp-bar-fill {
+    height: 100%;
+    background: #4ade80;
+    /* Green */
+    transition: width 0.3s ease;
+}
+
+.hp-text {
+    text-align: right;
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+}
+
+.sprite-stage {
+    width: 160px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    animation: idleBounce 3s ease-in-out infinite;
+    margin-top: -4rem;
+    /* Lift the whole stage up */
+    margin-bottom: auto;
+    /* Space from bottom */
+}
+
+@keyframes idleBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.battle-sprite {
+    image-rendering: pixelated;
+    filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
+}
+
+.front-sprite {
+    width: 180px;
+    /* Exact physical size requested */
+    height: 180px;
+    object-fit: contain;
+    transform: translateY(20px);
+    transform-origin: bottom center;
+}
+
+.back-sprite {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    transform: scaleX(-1) translateY(20px);
+    /* Flip to face enemy */
+    transform-origin: bottom center;
+}
+
+.debuff-area {
+    display: flex;
+    gap: 0.2rem;
+    margin-top: 0.3rem;
+    min-height: 12px;
+}
+
+.debuff-icon {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+    background: #ef4444;
+    color: white;
+    border: 1px solid #000;
+    border-radius: 2px;
 }
 
 @keyframes shinySweep {

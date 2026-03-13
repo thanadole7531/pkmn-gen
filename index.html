@@ -14,16 +14,19 @@
 
 <body>
     <div class="header-top fixed-top-right">
+        <div class="shop-container" id="shop-container">
+            <div class="shop-title">Poke Mart</div>
+            <div class="shop-items" id="shop-items-container">
+                <!-- Shop items injected here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bottom fixed-bottom-right">
         <div class="currency-container">
             <div class="currency-badge">
                 <span class="currency-icon">₽</span>
                 <span id="player-currency">--</span>
-            </div>
-            <div class="shop-container" id="shop-container">
-                <div class="shop-title">Poke Mart</div>
-                <div class="shop-items" id="shop-items-container">
-                    <!-- Shop items injected here -->
-                </div>
             </div>
         </div>
     </div>
@@ -54,6 +57,7 @@
             <button class="tab-btn active" data-tab="generator-tab">Encounter</button>
             <button class="tab-btn" data-tab="storage-tab">PC Storage</button>
             <button class="tab-btn" data-tab="items-tab">Items</button>
+            <button class="tab-btn" data-tab="battle-tab">Battle</button>
         </nav>
 
         <header class="main-header">
@@ -119,6 +123,61 @@
         <div id="items-tab" class="tab-content hidden">
             <div class="coming-soon">
                 <p>Coming Soon...</p>
+            </div>
+        </div>
+
+        <div id="battle-tab" class="tab-content hidden">
+            <div class="battle-arena">
+                <div class="battle-box player-side">
+                    <div class="stat-box">
+                        <div class="stat-header">
+                            <span class="pokemon-name" id="player-name">???</span>
+                            <span class="pokemon-level">Lv50</span>
+                        </div>
+                        <div class="hp-bar-container">
+                            <div class="hp-bar-label">HP</div>
+                            <div class="hp-bar-track">
+                                <div class="hp-bar-fill" id="player-hp" style="width: 100%;"></div>
+                            </div>
+                            <div class="hp-text" id="player-hp-text">100/100</div>
+                        </div>
+                        <div class="debuff-area" id="player-debuffs">
+                            <!-- Debuff icons -->
+                        </div>
+                    </div>
+                    <div class="sprite-stage player-stage">
+                        <img id="player-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" class="battle-sprite back-sprite" alt="Player">
+                    </div>
+                </div>
+
+                <div class="battle-box enemy-side">
+                    <div class="stat-box">
+                        <div class="stat-header">
+                            <span class="pokemon-name" id="enemy-name">???</span>
+                            <span class="pokemon-level">Lv50</span>
+                        </div>
+                        <div class="hp-bar-container">
+                            <div class="hp-bar-label">HP</div>
+                            <div class="hp-bar-track">
+                                <div class="hp-bar-fill" id="enemy-hp" style="width: 100%;"></div>
+                            </div>
+                            <div class="hp-text" id="enemy-hp-text">100/100</div>
+                        </div>
+                        <div class="debuff-area" id="enemy-debuffs">
+                            <!-- Debuff icons -->
+                        </div>
+                    </div>
+                    <div class="sprite-stage enemy-stage">
+                        <img id="enemy-sprite" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" class="battle-sprite front-sprite" alt="Enemy">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="start-battle-btn" class="primary-btn">
+                    <span class="btn-text">Test Battle</span>
+                    <div class="btn-glow"></div>
+                </button>
             </div>
         </div>
 
