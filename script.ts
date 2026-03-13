@@ -70,7 +70,41 @@ const state = {
     itemsPerPage: 9,
     currentPokemon: null as PokemonData | null,
     currentIsShiny: false,
-    currentAbility: null as PokemonAbility | null
+    currentAbility: null as PokemonAbility | null,
+    cache: {
+        habitats: JSON.parse(localStorage.getItem('pkmn_cache_habitats') || '{}') as Record<string, number[]>,
+        pokemon: JSON.parse(localStorage.getItem('pkmn_cache_pokemon') || '{}') as Record<number, PokemonData>,
+        species: JSON.parse(localStorage.getItem('pkmn_cache_species') || '{}') as Record<string, any>
+    }
+};
+
+const saveCacheToStorage = () => {
+    try {
+        // Prune cache if it gets too large to avoid localStorage limits
+        const prune = (obj: Record<any, any>, limit: number) => {
+            const keys = Object.keys(obj);
+            if (keys.length > limit) {
+                // Remove oldest half
+                keys.slice(0, Math.floor(limit / 2)).forEach(k => delete obj[k]);
+            }
+        };
+
+        prune(state.cache.habitats, 20);
+        prune(state.cache.pokemon, 100);
+        prune(state.cache.species, 50);
+
+        localStorage.setItem('pkmn_cache_habitats', JSON.stringify(state.cache.habitats));
+        localStorage.setItem('pkmn_cache_pokemon', JSON.stringify(state.cache.pokemon));
+        localStorage.setItem('pkmn_cache_species', JSON.stringify(state.cache.species));
+    } catch (e) {
+        console.warn('Cache save failed (Storage full?)', e);
+        // If critical, we could clear caches here
+        if (e instanceof Error && e.name === 'QuotaExceededError') {
+            state.cache.habitats = {};
+            state.cache.pokemon = {};
+            state.cache.species = {};
+        }
+    }
 };
 
 // Add a global type extension for window.forceShiny
@@ -296,14 +330,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Generator Logic ---
     const fetchIdsForHabitat = async (habitat: string): Promise<number[]> => {
+        if (state.cache.habitats[habitat]) {
+            return state.cache.habitats[habitat];
+        }
         try {
             const res = await fetch(`https://pokeapi.co/api/v2/pokemon-habitat/${habitat}/`);
             if (!res.ok) throw new Error('Habitat not found');
             const data = await res.json();
-            return data.pokemon_species.map((s: any) => {
+            const ids = data.pokemon_species.map((s: any) => {
                 const parts = s.url.split('/');
                 return parseInt(parts[parts.length - 2]);
             });
+            state.cache.habitats[habitat] = ids;
+            saveCacheToStorage();
+            return ids;
         } catch (e) {
             console.warn('Habitat fetch failed, using fallback random range', e);
             // Fallback: return a few random IDs if habitat fails
@@ -315,17 +355,28 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.pokemonCard.classList.add('fetching');
         elements.generateBtn.disabled = true;
         elements.catchBtn.disabled = true;
+        
+        // Clear all catch/sprite states
         elements.catchFeedbackContainer.classList.add('hidden');
-        elements.pokemonSprite.classList.add('hidden'); // Hide until loaded
+        elements.pokemonSprite.classList.add('hidden');
+        elements.pokemonSprite.classList.remove('pokeball-throw', 'pokeball-shake', 'pokeball-catch', 'escape-flash');
+        elements.pokemonSprite.style.animation = 'none';
+        void elements.pokemonSprite.offsetWidth; // force reflow
 
         try {
             const ids = await fetchIdsForHabitat(state.location.habitat);
             const id = ids[Math.floor(Math.random() * ids.length)];
 
-            const response = await fetch(`${CONFIG.API_BASE_URL}/${id}`);
-            if (!response.ok) throw new Error('Failed to fetch Pokémon');
-
-            const data = await response.json() as PokemonData;
+            let data: PokemonData;
+            if (state.cache.pokemon[id]) {
+                data = state.cache.pokemon[id];
+            } else {
+                const response = await fetch(`${CONFIG.API_BASE_URL}/${id}`);
+                if (!response.ok) throw new Error('Failed to fetch Pokémon');
+                data = await response.json() as PokemonData;
+                state.cache.pokemon[id] = data;
+                saveCacheToStorage();
+            }
             state.currentPokemon = data;
             state.currentIsShiny = window.forceShiny || Math.random() < CONFIG.SHINY_CHANCE;
             state.currentAbility = data.abilities[Math.floor(Math.random() * data.abilities.length)];
@@ -383,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.pokemonName.textContent = 'Error';
             elements.generateBtn.disabled = false;
             elements.pokemonCard.classList.remove('fetching');
+            elements.catchFeedbackContainer.classList.add('hidden');
         }
     }
 
@@ -441,8 +493,16 @@ document.addEventListener('DOMContentLoaded', () => {
         updateStatusBar();
 
         try {
-            const res = await fetch(state.currentPokemon.species.url);
-            const speciesData = await res.json();
+            let speciesData;
+            const speciesUrl = state.currentPokemon.species.url;
+            if (state.cache.species[speciesUrl]) {
+                speciesData = state.cache.species[speciesUrl];
+            } else {
+                const res = await fetch(speciesUrl);
+                speciesData = await res.json();
+                state.cache.species[speciesUrl] = speciesData;
+                saveCacheToStorage();
+            }
             const baseRate = speciesData.capture_rate; // 1-255
             const ballMult = CONFIG.BALLS[state.currentBall].multiplier;
 
@@ -510,13 +570,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const caughtPokemon: CaughtPokemon = {
                     ...state.currentPokemon,
-                    uuid: crypto.randomUUID(),
+                    uuid: (typeof crypto.randomUUID === 'function') 
+                        ? crypto.randomUUID() 
+                        : Math.random().toString(36).substring(2) + Date.now().toString(36),
                     caughtDate: Date.now(),
                     isShiny: state.currentIsShiny,
-                    abilityStatus: state.currentAbility!
+                    abilityStatus: state.currentAbility || { is_hidden: false, ability: { name: 'unknown' } }
                 };
-                state.pcStorage.unshift(caughtPokemon);
-                localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
+                
+                try {
+                    state.pcStorage.unshift(caughtPokemon);
+                    localStorage.setItem('pkmn_storage', JSON.stringify(state.pcStorage));
+                } catch (err) {
+                    console.error('Failed to save PC storage', err);
+                    elements.catchFeedback.textContent = 'PC FULL!';
+                    elements.catchFeedback.style.color = '#ef4444';
+                }
 
                 // Auto-next after 1.5s
                 setTimeout(() => {
