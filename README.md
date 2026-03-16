@@ -14,6 +14,12 @@
 
 ## Current Features
 - **Exploration & Generation**: Clicking "Find Next" (or Spacebar) fetches a random Pokémon from the PokeAPI based on the currently selected `Location` habitat (e.g., Cave, Sea, Forest).
+- **Roguelike Grid Exploration (New)**:
+    - A 7x7 playable Map tab where you navigate a pixel character using Arrow keys or WASD.
+    - **Energy System**: Movement costs 1 Energy (max 10). Reaching 0 means you must "Sleep".
+    - **Day Cycle**: Sleeping restores Energy, increments the Day counter, and fully randomizes the 7x7 island tiles layout.
+    - **Tile Interactions**: Move onto tiles like Forest or Rock to gain Resource materials. Consumable tiles instantly convert to empty Soil after use.
+    - **Daily Rewards**: Claim 1 free randomized tile per day to add to your "Deck", introducing light deckbuilding mechanics.
 - **Encounter UI**: 
     - Smooth orchestrated loading sequence: A visually masked loading state (`.fetching`) waits for sprites to be fully fetched and then sequentially reveals the Pokémon graphics (with a `popIn` visual bounce) followed by an orchestrated `fade-up-text` reveal of details.
     - Constant layout dimensions lock the card height (`550px`) and maximum width (`600px`) to comfortably handle the longest dynamic string lengths without UI distortion or leaping bounds.
@@ -28,9 +34,15 @@
 - **PC Storage System**: Caught Pokémon are saved uniquely with UUIDs and displayed on a paginated grid system in the "PC Storage" tab. Retains shiny status permanently via Local Storage caching.
 - **Economy Loop**: Releasing a saved Pokémon via the UI yields `REWARD_RELEASE` PokéDollars. Releasing a shiny Pokémon generously applies the `SHINY_RELEASE_MULTIPLIER` for a massive cash payout to fund further captures.
 
+## Future Vision (Roguelike Evolution)
+- Limit PC Storage to an active party of 6 Pokémon.
+- Synergies between grid tiles (e.g., Mountain near River boosts stats).
+- Team-composition synergies mimicking Auto-chess games (e.g., having 3 Electric types grants passive +Energy per day).
+- Progressive difficulty scaling via weekly Trainer Boss Battles (Lose = Game Over).
+
 ## Development Guide for AI Agents
 1. **Always edit `style.css` for visual UI updates.** Maintain the pseudo-3D pixel art drop shadows (`box-shadow`, `-4px 0 0 0`, etc). 
 2. Ensure you strictly read existing `.hidden` or opacity-modifying `.fetching` CSS masking styles. Animation synchronization is delicate and deliberately ordered (e.g., `script.ts` waits for images to load, removes masking classes, and manually triggers reflows with `void el.offsetWidth` before triggering the fade-ups).
 3. Keep all text layouts responsive using `word-break: break-word` and large padding limits in the main containers. Let bounding box spaces overflow cleanly rather than forcing dimension scaling.
 4. **Whenever adding mechanics or items, surface their tuning variables directly into `config.ts`.**
-5. All logical gamestate (inventory amounts, currency balances, storage arrays) is natively bound to `localStorage` for persistence. You must `setItem` locally whenever actively mutating the global `state` variable block inside `script.ts`.
+5. All logical gamestate (inventory amounts, currency balances, storage arrays, map layouts, tile decks) is natively bound to `localStorage` for persistence. You must `setItem` locally whenever actively mutating the global `state` variable block inside `script.ts`.

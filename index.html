@@ -57,6 +57,7 @@
             <button class="tab-btn active" data-tab="generator-tab">Encounter</button>
             <button class="tab-btn" data-tab="storage-tab">PC Storage</button>
             <button class="tab-btn" data-tab="items-tab">Items</button>
+            <button class="tab-btn" data-tab="map-tab">Map</button>
             <button class="tab-btn" data-tab="battle-tab">Battle</button>
         </nav>
 
@@ -123,6 +124,45 @@
         <div id="items-tab" class="tab-content hidden">
             <div class="coming-soon">
                 <p>Coming Soon...</p>
+            </div>
+        </div>
+
+        <div id="map-tab" class="tab-content hidden">
+            <div class="map-header">
+                <div class="map-stats">
+                    <span id="day-counter">Day 1</span>
+                    <span id="energy-counter">Energy 10/10</span>
+                </div>
+                <div class="map-materials">
+                    <span id="mat-wood" class="mat-badge wood">Wood: 0</span>
+                    <span id="mat-stone" class="mat-badge stone">Stone: 0</span>
+                </div>
+                <div class="map-actions">
+                    <button id="daily-reward-btn" class="secondary-btn">Claim Tile</button>
+                    <button id="sleep-btn" class="secondary-btn">Sleep</button>
+                </div>
+            </div>
+
+            <div class="map-wrapper">
+                <div id="map-grid" class="map-grid">
+                    <!-- Tiles injected via JS -->
+                </div>
+                <div id="player-character" class="player-character"></div>
+            </div>
+            
+            <div class="map-controls">
+                <div class="controls-hint">Use Arrow Keys or WASD to move</div>
+            </div>
+
+            <!-- Daily Reward Modal overlay -->
+            <div id="daily-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h3>Choose a Tile</h3>
+                    <div id="daily-tiles-container" class="daily-tiles">
+                        <!-- Tiles injected here -->
+                    </div>
+                    <button id="daily-skip-btn" class="secondary-btn">Skip for now</button>
+                </div>
             </div>
         </div>
 

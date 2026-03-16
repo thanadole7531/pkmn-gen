@@ -79,6 +79,37 @@ const state = {
     }
 };
 
+interface TileData {
+    type: 'grass' | 'soil' | 'forest' | 'rock';
+    isConsumable: boolean;
+    usesLeft: number;
+}
+
+interface MapState {
+    playerX: number;
+    playerY: number;
+    day: number;
+    energy: number;
+    maxEnergy: number;
+    wood: number;
+    stone: number;
+    dailyClaimed: boolean;
+    tiles: (TileData | null)[][];
+    tileDeck: string[];
+}
+const mapState: MapState = {
+    playerX: 3,
+    playerY: 3,
+    day: 1,
+    energy: 10,
+    maxEnergy: 10,
+    wood: 0,
+    stone: 0,
+    dailyClaimed: false,
+    tiles: [],
+    tileDeck: []
+};
+
 const saveCacheToStorage = () => {
     try {
         // Prune cache if it gets too large to avoid localStorage limits
@@ -165,6 +196,19 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPage: document.getElementById('next-page') as HTMLButtonElement,
         pageInfo: document.getElementById('page-info') as HTMLElement,
 
+        // Map UI
+        mapGrid: document.getElementById('map-grid') as HTMLElement,
+        playerCharacter: document.getElementById('player-character') as HTMLElement,
+        dayCounter: document.getElementById('day-counter') as HTMLElement,
+        energyCounter: document.getElementById('energy-counter') as HTMLElement,
+        matWood: document.getElementById('mat-wood') as HTMLElement,
+        matStone: document.getElementById('mat-stone') as HTMLElement,
+        dailyRewardBtn: document.getElementById('daily-reward-btn') as HTMLButtonElement,
+        sleepBtn: document.getElementById('sleep-btn') as HTMLButtonElement,
+        dailyModal: document.getElementById('daily-modal') as HTMLElement,
+        dailyTilesContainer: document.getElementById('daily-tiles-container') as HTMLElement,
+        dailySkipBtn: document.getElementById('daily-skip-btn') as HTMLButtonElement,
+
         // Audio
         audio: document.getElementById('pokemon-cry') as HTMLAudioElement
     };
@@ -175,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateShop();
         updateStatusBar();
         setupEventListeners();
+        initMapGrid();
         switchTab('generator-tab');
         renderStorage();
     };
@@ -311,11 +356,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Global shortcuts
         document.addEventListener('keydown', (e) => {
+            // Prevent scrolling on space/arrows if we are active on a game tab
+            if (isTabActive('generator-tab') || isTabActive('map-tab')) {
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                    e.preventDefault();
+                }
+            }
+
             if (e.code === 'Space' && !elements.generateBtn.disabled && isTabActive('generator-tab')) {
-                e.preventDefault();
                 fetchPokemon();
             }
+
+            if (isTabActive('map-tab')) {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+                    // Make sure modal isn't open
+                    if (elements.dailyModal && elements.dailyModal.classList.contains('hidden')) {
+                        handleMapMovement(e.code);
+                    }
+                }
+            }
         });
+
+        // Map Buttons
+        if (elements.sleepBtn) elements.sleepBtn.addEventListener('click', nextDay);
+        if (elements.dailyRewardBtn) elements.dailyRewardBtn.addEventListener('click', showDailyReward);
+        if (elements.dailySkipBtn) {
+            elements.dailySkipBtn.addEventListener('click', () => {
+                elements.dailyModal.classList.add('hidden');
+            });
+        }
 
         if (elements.audio) elements.audio.volume = CONFIG.AUDIO_VOLUME;
     };
@@ -339,6 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'generator-tab': elements.tabHeader.textContent = 'Encounter'; break;
                 case 'storage-tab': elements.tabHeader.textContent = 'PC Storage'; break;
                 case 'items-tab': elements.tabHeader.textContent = 'Items'; break;
+                case 'map-tab': elements.tabHeader.textContent = 'Map'; break;
                 case 'battle-tab': elements.tabHeader.textContent = 'Battle'; break;
             }
         }
@@ -770,6 +840,190 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.startBattleBtn.disabled = false;
         }
     }
+
+    // --- Map Logic ---
+    const updateMapUI = () => {
+        if (elements.dayCounter) elements.dayCounter.textContent = `Day ${mapState.day}`;
+        if (elements.energyCounter) {
+            elements.energyCounter.textContent = `Energy ${mapState.energy}/${mapState.maxEnergy}`;
+            elements.energyCounter.style.color = mapState.energy === 0 ? '#ef4444' : '#fbd34d';
+        }
+        if (elements.matWood) elements.matWood.textContent = `Wood: ${mapState.wood}`;
+        if (elements.matStone) elements.matStone.textContent = `Stone: ${mapState.stone}`;
+        if (elements.dailyRewardBtn) {
+            elements.dailyRewardBtn.disabled = mapState.dailyClaimed;
+        }
+    };
+
+    const nextDay = () => {
+        mapState.day++;
+        mapState.energy = mapState.maxEnergy;
+        mapState.dailyClaimed = false;
+        
+        // Reset position to center
+        mapState.playerX = 3;
+        mapState.playerY = 3;
+        
+        generateMap();
+        updateMapUI();
+        updateMapRender();
+    };
+
+    const generateMap = () => {
+        if (!elements.mapGrid) return;
+        elements.mapGrid.innerHTML = '';
+        mapState.tiles = [];
+
+        for (let y = 0; y < 7; y++) {
+            const row: (TileData | null)[] = [];
+            for (let x = 0; x < 7; x++) {
+                if (x === 3 && y === 3) {
+                    // Center tile is always clear/soil
+                    row.push({ type: 'soil', isConsumable: false, usesLeft: 0 });
+                } else {
+                    const rnd = Math.random();
+                    let type: TileData['type'] = 'grass';
+                    let isConsumable = true;
+                    let usesLeft = 1;
+
+                    if (rnd > 0.85) {
+                        type = 'rock';
+                        isConsumable = true;
+                        usesLeft = 2; // Can mine twice
+                    } else if (rnd > 0.7) {
+                        type = 'forest';
+                        isConsumable = true;
+                        usesLeft = 1;
+                    } else if (rnd > 0.4) {
+                        type = 'soil';
+                        isConsumable = false;
+                    } else {
+                        type = 'grass'; // Chance for encounter
+                        isConsumable = true;
+                    }
+
+                    row.push({ type, isConsumable, usesLeft });
+                }
+            }
+            mapState.tiles.push(row);
+        }
+        renderMapGrid();
+    };
+
+    const renderMapGrid = () => {
+        elements.mapGrid.innerHTML = '';
+        for (let y = 0; y < 7; y++) {
+            for (let x = 0; x < 7; x++) {
+                const tileData = mapState.tiles[y][x];
+                const tileDiv = document.createElement('div');
+                tileDiv.className = 'map-tile ' + (tileData?.type || 'soil');
+                tileDiv.dataset.x = x.toString();
+                tileDiv.dataset.y = y.toString();
+                elements.mapGrid.appendChild(tileDiv);
+            }
+        }
+    };
+
+    const initMapGrid = () => {
+        generateMap();
+        updateMapUI();
+    };
+
+    const updateMapRender = () => {
+        if (elements.playerCharacter) {
+            elements.playerCharacter.style.left = `${mapState.playerX * 64}px`;
+            elements.playerCharacter.style.top = `${mapState.playerY * 64}px`;
+        }
+    };
+
+    const handleTileInteraction = (x: number, y: number) => {
+        const tileData = mapState.tiles[y][x];
+        if (!tileData) return;
+
+        // Apply interaction
+        if (tileData.type === 'forest') {
+            mapState.wood += 1;
+            tileData.usesLeft--;
+        } else if (tileData.type === 'rock') {
+            mapState.stone += 1;
+            tileData.usesLeft--;
+        } else if (tileData.type === 'grass') {
+            // Placeholder: maybe trigger encounter, currently just consume
+            tileData.usesLeft--;
+        }
+
+        // Consume tile
+        if (tileData.isConsumable && tileData.usesLeft <= 0) {
+            mapState.tiles[y][x] = { type: 'soil', isConsumable: false, usesLeft: 0 };
+            const domIndex = y * 7 + x;
+            if (elements.mapGrid.children[domIndex]) {
+                elements.mapGrid.children[domIndex].className = 'map-tile soil';
+            }
+        }
+        
+        updateMapUI();
+    };
+
+    const handleMapMovement = (code: string) => {
+        if (mapState.energy <= 0) {
+            // Flash energy counter to indicate need sleep
+            elements.energyCounter.classList.add('error-flash');
+            setTimeout(() => elements.energyCounter.classList.remove('error-flash'), 500);
+            return;
+        }
+
+        let newX = mapState.playerX;
+        let newY = mapState.playerY;
+
+        if (code === 'ArrowUp' || code === 'KeyW') newY--;
+        else if (code === 'ArrowDown' || code === 'KeyS') newY++;
+        else if (code === 'ArrowLeft' || code === 'KeyA') newX--;
+        else if (code === 'ArrowRight' || code === 'KeyD') newX++;
+
+        if (newX !== mapState.playerX || newY !== mapState.playerY) {
+            if (newX >= 0 && newX < 7 && newY >= 0 && newY < 7) {
+                mapState.playerX = newX;
+                mapState.playerY = newY;
+                mapState.energy--;
+                updateMapRender();
+                handleTileInteraction(newX, newY);
+            }
+        }
+    };
+
+    const showDailyReward = () => {
+        if (mapState.dailyClaimed || !elements.dailyModal) return;
+        
+        elements.dailyTilesContainer.innerHTML = '';
+        // Randomly pick 3 tiles types just as an example
+        for (let i = 0; i < 3; i++) {
+            const types = ['forest', 'rock', 'grass'];
+            const t = types[Math.floor(Math.random() * types.length)];
+            
+            const btn = document.createElement('div');
+            btn.className = 'daily-tile-option';
+            
+            const preview = document.createElement('div');
+            preview.className = `map-tile ${t} tile-preview`;
+            
+            const name = document.createElement('span');
+            name.textContent = `${t} Tile`;
+            
+            btn.appendChild(preview);
+            btn.appendChild(name);
+            
+            btn.addEventListener('click', () => {
+                mapState.tileDeck.push(t);
+                mapState.dailyClaimed = true;
+                updateMapUI();
+                elements.dailyModal.classList.add('hidden');
+            });
+            
+            elements.dailyTilesContainer.appendChild(btn);
+        }
+
+        elements.dailyModal.classList.remove('hidden');
+    };
 
     // --- Helpers ---
     const resetAnimation = (element: HTMLElement, animationName: string): void => {
