@@ -1,4 +1,4 @@
-export type TileRarity = 'COMMON' | 'RARE' | 'EPIC';
+export type TileRarity = 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
 
 export interface TileDefinition {
     id: string;
@@ -12,12 +12,14 @@ export interface TileDefinition {
 }
 
 export const RARITY_WEIGHTS: Record<TileRarity, number> = {
-    COMMON: 70,
+    COMMON: 60,
     RARE: 25,
-    EPIC: 5
+    EPIC: 12,
+    LEGENDARY: 3
 };
 
 export const TILE_DATABASE: Record<string, TileDefinition> = {
+    // --- COMMON ---
     soil: {
         id: 'soil',
         name: 'Soil',
@@ -36,11 +38,22 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         maxUses: 1,
         passable: true
     },
+    bush: {
+        id: 'bush',
+        name: 'Berry Bush',
+        description: 'A small bush with a few berries. Walk through to pick them.',
+        rarity: 'COMMON',
+        isConsumable: true,
+        maxUses: 1,
+        passable: true
+    },
+
+    // --- RARE ---
     forest: {
         id: 'forest',
         name: 'Forest',
         description: 'Dense trees blocking the way. Chop them down!',
-        rarity: 'COMMON',
+        rarity: 'RARE',
         isConsumable: true,
         maxUses: 2,
         passable: false,
@@ -55,6 +68,50 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         maxUses: 3,
         passable: false,
         resourceType: 'stone'
+    },
+
+    // --- EPIC ---
+    ancient_tree: {
+        id: 'ancient_tree',
+        name: 'Ancient Tree',
+        description: 'A massive ancient tree. Yields rare timber.',
+        rarity: 'EPIC',
+        isConsumable: true,
+        maxUses: 4,
+        passable: false,
+        resourceType: 'wood'
+    },
+    crystal_rock: {
+        id: 'crystal_rock',
+        name: 'Crystal Rock',
+        description: 'A glowing rock embedded with crystals.',
+        rarity: 'EPIC',
+        isConsumable: true,
+        maxUses: 5,
+        passable: false,
+        resourceType: 'stone'
+    },
+
+    // --- LEGENDARY ---
+    world_tree: {
+        id: 'world_tree',
+        name: 'World Tree',
+        description: 'A legendary tree pulsing with life energy. Extremely valuable.',
+        rarity: 'LEGENDARY',
+        isConsumable: true,
+        maxUses: 6,
+        passable: false,
+        resourceType: 'wood'
+    },
+    meteor: {
+        id: 'meteor',
+        name: 'Fallen Meteor',
+        description: 'A smoldering space rock. Contains otherworldly minerals.',
+        rarity: 'LEGENDARY',
+        isConsumable: true,
+        maxUses: 8,
+        passable: false,
+        resourceType: 'stone'
     }
 };
 
@@ -66,7 +123,8 @@ export const getRandomTileByRarity = (rarity: TileRarity): TileDefinition => {
 
 export const rollRarity = (): TileRarity => {
     const roll = Math.random() * 100;
-    if (roll < RARITY_WEIGHTS.EPIC) return 'EPIC';
-    if (roll < RARITY_WEIGHTS.EPIC + RARITY_WEIGHTS.RARE) return 'RARE';
+    if (roll < RARITY_WEIGHTS.LEGENDARY) return 'LEGENDARY';
+    if (roll < RARITY_WEIGHTS.LEGENDARY + RARITY_WEIGHTS.EPIC) return 'EPIC';
+    if (roll < RARITY_WEIGHTS.LEGENDARY + RARITY_WEIGHTS.EPIC + RARITY_WEIGHTS.RARE) return 'RARE';
     return 'COMMON';
 };
