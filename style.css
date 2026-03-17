@@ -1609,3 +1609,26 @@ h2 {
     font-size: 0.5rem;
     text-transform: capitalize;
 }
+
+.rarity-tag {
+    font-size: 8px;
+    padding: 2px 4px;
+    border: 1px solid #fff;
+    margin-top: 4px;
+    text-shadow: none;
+}
+
+.rarity-tag.common { background: #94a3b8; color: #fff; }
+.rarity-tag.rare { background: #3b82f6; color: #fff; }
+.rarity-tag.epic { background: #a855f7; color: #fff; box-shadow: 0 0 5px #a855f7; }
+
+/* Bonk Animation */
+.bonk {
+    animation: bonkAnim 0.15s ease-out;
+}
+
+@keyframes bonkAnim {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9) translateY(4px); filter: brightness(1.5); }
+    100% { transform: scale(1); }
+}

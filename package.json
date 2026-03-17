@@ -1,7 +1,7 @@
 {
-  "name": "pokemon-generator",
+  "name": "pkmn-gen",
   "version": "1.0.0",
-  "description": "Random Pokémon Generator Hobby Project",
+  "description": "Hobby Project",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

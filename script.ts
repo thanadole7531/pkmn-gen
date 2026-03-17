@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from './config';
+import { TILE_DATABASE, getRandomTileByRarity, rollRarity } from './tiles';
 
 // --- Interfaces ---
 interface PokemonType {
@@ -79,9 +80,8 @@ const state = {
     }
 };
 
-interface TileData {
-    type: 'grass' | 'soil' | 'forest' | 'rock';
-    isConsumable: boolean;
+interface TileInstance {
+    tileId: string;
     usesLeft: number;
 }
 
@@ -94,18 +94,20 @@ interface MapState {
     wood: number;
     stone: number;
     dailyClaimed: boolean;
-    tiles: (TileData | null)[][];
+    isMoving: boolean;
+    tiles: (TileInstance | null)[][];
     tileDeck: string[];
 }
 const mapState: MapState = {
     playerX: 3,
     playerY: 3,
     day: 1,
-    energy: 10,
+    energy: 10, // Restored to 10 as per user's original plan
     maxEnergy: 10,
     wood: 0,
     stone: 0,
     dailyClaimed: false,
+    isMoving: false,
     tiles: [],
     tileDeck: []
 };
@@ -875,34 +877,18 @@ document.addEventListener('DOMContentLoaded', () => {
         mapState.tiles = [];
 
         for (let y = 0; y < 7; y++) {
-            const row: (TileData | null)[] = [];
+            const row: (TileInstance | null)[] = [];
             for (let x = 0; x < 7; x++) {
                 if (x === 3 && y === 3) {
-                    // Center tile is always clear/soil
-                    row.push({ type: 'soil', isConsumable: false, usesLeft: 0 });
+                    row.push({ tileId: 'soil', usesLeft: 0 });
                 } else {
-                    const rnd = Math.random();
-                    let type: TileData['type'] = 'grass';
-                    let isConsumable = true;
-                    let usesLeft = 1;
+                    const rarity = rollRarity();
+                    const definition = getRandomTileByRarity(rarity);
 
-                    if (rnd > 0.85) {
-                        type = 'rock';
-                        isConsumable = true;
-                        usesLeft = 2; // Can mine twice
-                    } else if (rnd > 0.7) {
-                        type = 'forest';
-                        isConsumable = true;
-                        usesLeft = 1;
-                    } else if (rnd > 0.4) {
-                        type = 'soil';
-                        isConsumable = false;
-                    } else {
-                        type = 'grass'; // Chance for encounter
-                        isConsumable = true;
-                    }
-
-                    row.push({ type, isConsumable, usesLeft });
+                    row.push({ 
+                        tileId: definition.id, 
+                        usesLeft: definition.maxUses 
+                    });
                 }
             }
             mapState.tiles.push(row);
@@ -914,9 +900,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.mapGrid.innerHTML = '';
         for (let y = 0; y < 7; y++) {
             for (let x = 0; x < 7; x++) {
-                const tileData = mapState.tiles[y][x];
+                const instance = mapState.tiles[y][x];
                 const tileDiv = document.createElement('div');
-                tileDiv.className = 'map-tile ' + (tileData?.type || 'soil');
+                tileDiv.className = 'map-tile ' + (instance?.tileId || 'soil');
                 tileDiv.dataset.x = x.toString();
                 tileDiv.dataset.y = y.toString();
                 elements.mapGrid.appendChild(tileDiv);
@@ -926,6 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initMapGrid = () => {
         generateMap();
+        updateMapRender();
         updateMapUI();
     };
 
@@ -937,24 +924,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleTileInteraction = (x: number, y: number) => {
-        const tileData = mapState.tiles[y][x];
-        if (!tileData) return;
+        const instance = mapState.tiles[y][x];
+        if (!instance) return;
+
+        const definition = TILE_DATABASE[instance.tileId];
+        if (!definition) return;
 
         // Apply interaction
-        if (tileData.type === 'forest') {
+        if (definition.resourceType === 'wood') {
             mapState.wood += 1;
-            tileData.usesLeft--;
-        } else if (tileData.type === 'rock') {
+            instance.usesLeft--;
+        } else if (definition.resourceType === 'stone') {
             mapState.stone += 1;
-            tileData.usesLeft--;
-        } else if (tileData.type === 'grass') {
-            // Placeholder: maybe trigger encounter, currently just consume
-            tileData.usesLeft--;
+            instance.usesLeft--;
+        } else if (definition.id === 'grass') {
+            instance.usesLeft--;
         }
 
-        // Consume tile
-        if (tileData.isConsumable && tileData.usesLeft <= 0) {
-            mapState.tiles[y][x] = { type: 'soil', isConsumable: false, usesLeft: 0 };
+        // Break tile if consumable and used up
+        if (definition.isConsumable && instance.usesLeft <= 0) {
+            mapState.tiles[y][x] = { tileId: 'soil', usesLeft: 0 };
             const domIndex = y * 7 + x;
             if (elements.mapGrid.children[domIndex]) {
                 elements.mapGrid.children[domIndex].className = 'map-tile soil';
@@ -965,8 +954,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleMapMovement = (code: string) => {
+        if (mapState.isMoving) return;
+
         if (mapState.energy <= 0) {
-            // Flash energy counter to indicate need sleep
             elements.energyCounter.classList.add('error-flash');
             setTimeout(() => elements.energyCounter.classList.remove('error-flash'), 500);
             return;
@@ -982,11 +972,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (newX !== mapState.playerX || newY !== mapState.playerY) {
             if (newX >= 0 && newX < 7 && newY >= 0 && newY < 7) {
-                mapState.playerX = newX;
-                mapState.playerY = newY;
-                mapState.energy--;
-                updateMapRender();
-                handleTileInteraction(newX, newY);
+                const targetInstance = mapState.tiles[newY][newX];
+                const targetDef = targetInstance ? TILE_DATABASE[targetInstance.tileId] : TILE_DATABASE['soil'];
+
+                mapState.isMoving = true;
+
+                if (targetDef && !targetDef.passable) {
+                    // collision! bonk it
+                    mapState.energy--;
+                    handleTileInteraction(newX, newY);
+                    updateMapUI();
+                    
+                    // visual bounce feedback
+                    elements.playerCharacter.classList.add('bonk');
+                    setTimeout(() => {
+                        elements.playerCharacter.classList.remove('bonk');
+                        mapState.isMoving = false;
+                    }, 150);
+                } else {
+                    // move
+                    mapState.playerX = newX;
+                    mapState.playerY = newY;
+                    mapState.energy--;
+                    updateMapRender();
+                    handleTileInteraction(newX, newY);
+                    
+                    setTimeout(() => {
+                        mapState.isMoving = false;
+                    }, 150);
+                }
             }
         }
     };
@@ -995,25 +1009,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mapState.dailyClaimed || !elements.dailyModal) return;
         
         elements.dailyTilesContainer.innerHTML = '';
-        // Randomly pick 3 tiles types just as an example
+        
         for (let i = 0; i < 3; i++) {
-            const types = ['forest', 'rock', 'grass'];
-            const t = types[Math.floor(Math.random() * types.length)];
+            const rarity = rollRarity();
+            const definition = getRandomTileByRarity(rarity);
             
             const btn = document.createElement('div');
             btn.className = 'daily-tile-option';
+            btn.title = definition.description;
             
             const preview = document.createElement('div');
-            preview.className = `map-tile ${t} tile-preview`;
+            preview.className = `map-tile ${definition.id} tile-preview`;
             
             const name = document.createElement('span');
-            name.textContent = `${t} Tile`;
+            name.textContent = definition.name;
             
+            const rarSpan = document.createElement('div');
+            rarSpan.className = 'rarity-tag ' + definition.rarity.toLowerCase();
+            rarSpan.textContent = definition.rarity;
+
             btn.appendChild(preview);
             btn.appendChild(name);
+            btn.appendChild(rarSpan);
             
             btn.addEventListener('click', () => {
-                mapState.tileDeck.push(t);
+                mapState.tileDeck.push(definition.id);
                 mapState.dailyClaimed = true;
                 updateMapUI();
                 elements.dailyModal.classList.add('hidden');
