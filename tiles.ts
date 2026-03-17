@@ -8,6 +8,7 @@ export interface TileDefinition {
     isConsumable: boolean;
     maxUses: number;
     passable: boolean;
+    battleChance: number; // 0-1 probability of triggering a battle when interacted with
     resourceType?: 'wood' | 'stone';
 }
 
@@ -27,7 +28,8 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         rarity: 'COMMON',
         isConsumable: false,
         maxUses: 0,
-        passable: true
+        passable: true,
+        battleChance: 0
     },
     grass: {
         id: 'grass',
@@ -36,7 +38,8 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         rarity: 'COMMON',
         isConsumable: true,
         maxUses: 1,
-        passable: true
+        passable: true,
+        battleChance: 0.3
     },
     bush: {
         id: 'bush',
@@ -45,7 +48,8 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         rarity: 'COMMON',
         isConsumable: true,
         maxUses: 1,
-        passable: true
+        passable: true,
+        battleChance: 0.15
     },
 
     // --- RARE ---
@@ -57,6 +61,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 2,
         passable: false,
+        battleChance: 0.2,
         resourceType: 'wood'
     },
     rock: {
@@ -67,6 +72,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 3,
         passable: false,
+        battleChance: 0.1,
         resourceType: 'stone'
     },
 
@@ -79,6 +85,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 4,
         passable: false,
+        battleChance: 0.35,
         resourceType: 'wood'
     },
     crystal_rock: {
@@ -89,6 +96,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 5,
         passable: false,
+        battleChance: 0.25,
         resourceType: 'stone'
     },
 
@@ -101,6 +109,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 6,
         passable: false,
+        battleChance: 0.5,
         resourceType: 'wood'
     },
     meteor: {
@@ -111,6 +120,7 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
         isConsumable: true,
         maxUses: 8,
         passable: false,
+        battleChance: 0.5,
         resourceType: 'stone'
     }
 };

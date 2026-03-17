@@ -58,6 +58,7 @@
             <button class="tab-btn" data-tab="storage-tab">PC Storage</button>
             <button class="tab-btn" data-tab="items-tab">Items</button>
             <button class="tab-btn" data-tab="map-tab">Map</button>
+            <button class="tab-btn" data-tab="deck-tab">Deck</button>
             <button class="tab-btn" data-tab="battle-tab">Battle</button>
         </nav>
 
@@ -163,6 +164,21 @@
                     </div>
                     <button id="daily-skip-btn" class="secondary-btn">Skip for now</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="deck-tab" class="tab-content hidden">
+            <div class="deck-header">
+                <span class="deck-title">Tile Deck</span>
+                <span id="deck-count-label" class="deck-count">0 tiles</span>
+            </div>
+            <div id="deck-grid" class="deck-grid">
+                <!-- Tile cards injected via JS -->
+            </div>
+            <div class="pagination" id="deck-pagination">
+                <button id="deck-prev" class="tab-btn">Prev</button>
+                <span id="deck-page-info">Page 1</span>
+                <button id="deck-next" class="tab-btn">Next</button>
             </div>
         </div>
 

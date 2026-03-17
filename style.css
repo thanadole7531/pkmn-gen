@@ -1390,6 +1390,103 @@ h2 {
     }
 }
 
+/* Deck Tab Styles */
+.deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0 1rem;
+    border-bottom: 2px solid rgba(255,255,255,0.15);
+    margin-bottom: 1.5rem;
+}
+
+.deck-title {
+    font-size: 0.8rem;
+    color: #fbd34d;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.deck-count {
+    font-size: 0.5rem;
+    color: #94a3b8;
+}
+
+.deck-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    min-height: 200px;
+}
+
+.deck-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 0.6rem;
+    color: #64748b;
+    padding: 2rem;
+    line-height: 2;
+    border: 2px dashed rgba(255,255,255,0.1);
+}
+
+.deck-card {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem 0.5rem;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: default;
+}
+
+.deck-card:hover {
+    border-color: #fbd34d;
+    transform: translateY(-2px);
+    background: rgba(251,211,77,0.05);
+}
+
+.deck-sprite-wrapper {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+}
+
+.deck-sprite {
+    width: 64px !important;
+    height: 64px !important;
+    border: none !important;
+}
+
+.deck-count-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.45rem;
+    padding: 2px 4px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 2px 2px 0 #000;
+    z-index: 2;
+}
+
+.deck-tile-name {
+    font-size: 0.5rem;
+    color: #e2e8f0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.deck-battle-chance {
+    font-size: 0.45rem;
+    text-align: center;
+    margin-top: 2px;
+}
+
 /* Map Tab Styles */
 .map-header {
     display: flex;
