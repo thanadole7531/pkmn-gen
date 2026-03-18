@@ -1,6 +1,6 @@
-import { CONFIG } from './config';
-import { PokemonData } from './types';
-import { state, saveCacheToStorage } from './state';
+import { CONFIG } from './config.ts';
+import { PokemonData } from './types.ts';
+import { state, saveCacheToStorage } from './state.ts';
 
 export const fetchIdsForHabitat = async (habitat: string): Promise<number[]> => {
     if (state.cache.habitats[habitat]) {

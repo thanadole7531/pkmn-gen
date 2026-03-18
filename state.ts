@@ -1,5 +1,5 @@
-import { CONFIG } from './config';
-import { GlobalState, MapState, CaughtPokemon } from './types';
+import { CONFIG } from './config.ts';
+import { GlobalState, MapState, CaughtPokemon } from './types.ts';
 
 // --- Global State ---
 const savedBalls = localStorage.getItem('pkmn_balls');

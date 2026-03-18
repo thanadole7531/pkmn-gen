@@ -1,8 +1,8 @@
-import { TILE_DATABASE, getRandomTileByRarity, rollRarity } from './tiles';
-import { mapState } from './state';
-import { elements } from './dom';
-import { TileInstance } from './types';
-import { triggerBattle } from './ui-battle';
+import { TILE_DATABASE, getRandomTileByRarity, rollRarity } from './tiles.ts';
+import { mapState } from './state.ts';
+import { elements } from './dom.ts';
+import { TileInstance } from './types.ts';
+import { triggerBattle } from './ui-battle.ts';
 
 export const updateMapUI = () => {
     if (elements.dayCounter) elements.dayCounter.textContent = `Day ${mapState.day}`;

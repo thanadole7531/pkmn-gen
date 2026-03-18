@@ -1,8 +1,8 @@
-import { CONFIG } from './config';
-import { state } from './state';
-import { elements } from './dom';
-import { renderStorage } from './ui-storage';
-import { updateStatusBar } from './ui-shared';
+import { CONFIG } from './config.ts';
+import { state } from './state.ts';
+import { elements } from './dom.ts';
+import { renderStorage } from './ui-storage.ts';
+import { updateStatusBar } from './ui-shared.ts';
 
 
 export const populateLocations = () => {

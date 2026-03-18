@@ -3,16 +3,16 @@
  * Entry Point: Coordinates all modules for the Pokémon game.
  */
 
-import { CONFIG } from './config';
-import { state } from './state';
-import { elements, initElements } from './dom';
-import { updateStatusBar } from './ui-shared';
-import { populateLocations, populateShop, switchTab, isTabActive } from './ui-main';
-import { fetchPokemon, attemptCatch } from './ui-encounter';
-import { renderStorage } from './ui-storage';
-import { initMapGrid, handleMapMovement, nextDay, showDailyReward } from './ui-map';
-import { renderDeckTab, initDeckEvents } from './ui-deck';
-import { testBattle } from './ui-battle';
+import { CONFIG } from './config.ts';
+import { state } from './state.ts';
+import { elements, initElements } from './dom.ts';
+import { updateStatusBar } from './ui-shared.ts';
+import { populateLocations, populateShop, switchTab, isTabActive } from './ui-main.ts';
+import { fetchPokemon, attemptCatch } from './ui-encounter.ts';
+import { renderStorage } from './ui-storage.ts';
+import { initMapGrid, handleMapMovement, nextDay, showDailyReward } from './ui-map.ts';
+import { renderDeckTab, initDeckEvents } from './ui-deck.ts';
+import { testBattle } from './ui-battle.ts';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initialize DOM element Cache

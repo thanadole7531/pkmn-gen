@@ -1,9 +1,9 @@
-import { CONFIG } from './config';
-import { state } from './state';
-import { elements } from './dom';
-import { fetchIdsForHabitat, fetchPokemonData, fetchSpeciesData } from './api';
-import { resetAnimation, formatName } from './utils';
-import { CaughtPokemon } from './types';
+import { CONFIG } from './config.ts';
+import { state } from './state.ts';
+import { elements } from './dom.ts';
+import { fetchIdsForHabitat, fetchPokemonData, fetchSpeciesData } from './api.ts';
+import { resetAnimation, formatName } from './utils.ts';
+import { CaughtPokemon } from './types.ts';
 
 export const updateUI = () => {
     if (!state.currentPokemon) return;
@@ -115,7 +115,7 @@ export async function fetchPokemon() {
 // updateStatusBar is needed here too, I'll pass it in or import it
 // Since updateStatusBar is "Global UI", I'll put it in ui-main.ts or similar.
 // For now, I'll assume it's imported.
-import { updateStatusBar } from './ui-shared';
+import { updateStatusBar } from './ui-shared.ts';
 
 export async function attemptCatch() {
     const currentBallCount = state.balls[state.currentBall];

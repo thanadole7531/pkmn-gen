@@ -1,5 +1,5 @@
-import { state } from './state';
-import { elements } from './dom';
+import { state } from './state.ts';
+import { elements } from './dom.ts';
 
 export const updateStatusBar = () => {
     if (elements.currency) elements.currency.textContent = state.currency.toLocaleString();

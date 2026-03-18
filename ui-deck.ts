@@ -1,5 +1,5 @@
-import { mapState } from './state';
-import { TILE_DATABASE } from './tiles';
+import { mapState } from './state.ts';
+import { TILE_DATABASE } from './tiles.ts';
 
 let deckPage = 1;
 const DECK_PER_PAGE = 9;

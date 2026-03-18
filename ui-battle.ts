@@ -1,6 +1,6 @@
-import { CONFIG } from './config';
-import { elements } from './dom';
-import { PokemonData } from './types';
+import { CONFIG } from './config.ts';
+import { elements } from './dom.ts';
+import { PokemonData } from './types.ts';
 
 export const triggerBattle = () => {
     console.log('[BATTLE] Wild Pokémon encounter triggered!');
