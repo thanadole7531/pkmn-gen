@@ -126,8 +126,12 @@ export const TILE_DATABASE: Record<string, TileDefinition> = {
 };
 
 export const getRandomTileByRarity = (rarity: TileRarity): TileDefinition => {
-    const pool = Object.values(TILE_DATABASE).filter(t => t.rarity === rarity);
-    if (pool.length === 0) return TILE_DATABASE['soil']; // Fallback
+    const pool = Object.values(TILE_DATABASE).filter(t => t.rarity === rarity && t.id !== 'soil');
+    if (pool.length === 0) {
+        // Find ANY tile that isn't soil if the specific rarity pool is empty
+        const fallbackPool = Object.values(TILE_DATABASE).filter(t => t.id !== 'soil');
+        return fallbackPool[Math.floor(Math.random() * fallbackPool.length)] || TILE_DATABASE['soil']; 
+    }
     return pool[Math.floor(Math.random() * pool.length)];
 };
 
