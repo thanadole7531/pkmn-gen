@@ -13,9 +13,25 @@ export const renderDeckTab = () => {
     if (!deckGrid) return;
 
     const counts: Record<string, number> = {};
+    
+    // Count tiles in deck
     for (const id of mapState.tileDeck) {
         counts[id] = (counts[id] || 0) + 1;
     }
+
+    // Count tiles on board
+    if (mapState.tiles) {
+        for (let y = 0; y < 7; y++) {
+            for (let x = 0; x < 7; x++) {
+                const instance = mapState.tiles[y][x];
+                if (instance && instance.tileId !== 'soil') {
+                    counts[instance.tileId] = (counts[instance.tileId] || 0) + 1;
+                }
+            }
+        }
+    }
+
+    const totalOwned = Object.values(counts).reduce((a, b) => a + b, 0);
 
     const uniqueEntries = Object.keys(counts);
     const totalPages = Math.max(1, Math.ceil(uniqueEntries.length / DECK_PER_PAGE));
@@ -25,8 +41,7 @@ export const renderDeckTab = () => {
     const pageEntries = uniqueEntries.slice(start, start + DECK_PER_PAGE);
 
     if (deckCountLabel) {
-        const total = mapState.tileDeck.length;
-        deckCountLabel.textContent = `${total} tile${total !== 1 ? 's' : ''} (${uniqueEntries.length} unique)`;
+        deckCountLabel.textContent = `${totalOwned} total tile${totalOwned !== 1 ? 's' : ''} (${uniqueEntries.length} unique)`;
     }
     if (deckPageInfo) deckPageInfo.textContent = `Page ${deckPage} / ${totalPages}`;
     if (deckPrev) deckPrev.disabled = deckPage <= 1;

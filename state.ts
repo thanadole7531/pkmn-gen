@@ -41,18 +41,68 @@ export const state: GlobalState = {
     }
 };
 
-export const mapState: MapState = {
-    playerX: 3,
-    playerY: 3,
-    day: 1,
-    energy: 10,
-    maxEnergy: 10,
-    wood: 0,
-    stone: 0,
-    dailyClaimed: false,
-    isMoving: false,
-    tiles: [],
-    tileDeck: []
+// --- Map State & Starting Deck ---
+export const STARTING_DECK = [
+    'grass', 'grass', 'grass', 'grass', 'grass', 'grass',
+    'bush', 'bush', 'bush', 'bush',
+    'forest', 'forest', 'forest',
+    'rock', 'rock'
+];
+
+const savedMapState = localStorage.getItem('pkmn_map_state');
+let initialMapState: MapState;
+
+try {
+    const parsed = JSON.parse(savedMapState || 'null');
+    if (parsed && typeof parsed === 'object') {
+        initialMapState = {
+            ...parsed,
+            isMoving: false // Reset movement flag on load
+        };
+        // Handle legacy saves: If they have no deck OR an empty deck, reset to starting conditions
+        if (!initialMapState.tileDeck || initialMapState.tileDeck.length === 0) {
+            initialMapState.tileDeck = [...STARTING_DECK];
+            initialMapState.tiles = []; // This will trigger generateMap() in initMapGrid()
+            initialMapState.day = 1;
+            initialMapState.energy = 10;
+        }
+        
+        if (!initialMapState.tiles) initialMapState.tiles = [];
+    } else {
+        initialMapState = {
+            playerX: 3,
+            playerY: 3,
+            day: 1,
+            energy: 10,
+            maxEnergy: 10,
+            wood: 0,
+            stone: 0,
+            dailyClaimed: false,
+            isMoving: false,
+            tiles: [],
+            tileDeck: [...STARTING_DECK]
+        };
+    }
+} catch (e) {
+    initialMapState = {
+        playerX: 3,
+        playerY: 3,
+        day: 1,
+        energy: 10,
+        maxEnergy: 10,
+        wood: 0,
+        stone: 0,
+        dailyClaimed: false,
+        isMoving: false,
+        tiles: [],
+        tileDeck: [...STARTING_DECK]
+    };
+}
+
+export const mapState: MapState = initialMapState;
+
+export const saveMapState = () => {
+    localStorage.setItem('pkmn_map_state', JSON.stringify(mapState));
 };
 
 export const saveCacheToStorage = () => {

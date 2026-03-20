@@ -1,8 +1,9 @@
 import { TILE_DATABASE, getRandomTileByRarity, rollRarity } from './tiles.ts';
-import { mapState } from './state.ts';
+import { mapState, saveMapState } from './state.ts';
 import { elements } from './dom.ts';
 import { TileInstance } from './types.ts';
 import { triggerBattle } from './ui-battle.ts';
+import { renderDeckTab } from './ui-deck.ts';
 
 export const updateMapUI = () => {
     if (elements.dayCounter) elements.dayCounter.textContent = `Day ${mapState.day}`;
@@ -41,41 +42,89 @@ export const renderMapGrid = () => {
 
 export const generateMap = () => {
     if (!elements.mapGrid) return;
-    mapState.tiles = [];
+
+    // 1. Prepare coordinate pool (all except center 3,3)
+    const coords: {x: number, y: number}[] = [];
     for (let y = 0; y < 7; y++) {
-        const row: (TileInstance | null)[] = [];
         for (let x = 0; x < 7; x++) {
-            if (x === 3 && y === 3) {
-                row.push({ tileId: 'soil', usesLeft: 0 });
-            } else {
-                const rarity = rollRarity();
-                const definition = getRandomTileByRarity(rarity);
-                row.push({ 
-                    tileId: definition.id, 
-                    usesLeft: definition.maxUses 
-                });
+            if (!(x === 3 && y === 3)) {
+                coords.push({x, y});
             }
         }
-        mapState.tiles.push(row);
     }
+
+    // Shuffle coordinates
+    for (let i = coords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [coords[i], coords[j]] = [coords[j], coords[i]];
+    }
+
+    // 2. Prepare deck copy
+    const deckCopy = [...mapState.tileDeck];
+    // Shuffle deck too for good measure
+    for (let i = deckCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deckCopy[i], deckCopy[j]] = [deckCopy[j], deckCopy[i]];
+    }
+
+    // 3. Clear existing deck in state
+    mapState.tileDeck = [];
+
+    // 4. Initialize empty grid (mostly soil)
+    const grid: (TileInstance | null)[][] = Array.from({ length: 7 }, () => 
+        Array.from({ length: 7 }, () => ({ tileId: 'soil', usesLeft: 0 }))
+    );
+
+    // 5. Place tiles from deck into shuffled coordinates
+    while (deckCopy.length > 0 && coords.length > 0) {
+        const tileId = deckCopy.pop()!;
+        const {x, y} = coords.pop()!;
+        const definition = TILE_DATABASE[tileId];
+        grid[y][x] = { 
+            tileId, 
+            usesLeft: definition ? definition.maxUses : 1 
+        };
+    }
+
+    mapState.tiles = grid;
+    saveMapState();
     renderMapGrid();
+    renderDeckTab();
 };
 
 export const initMapGrid = () => {
-    generateMap();
+    if (mapState.tiles && mapState.tiles.length > 0) {
+        renderMapGrid();
+    } else {
+        generateMap();
+    }
     updateMapRender();
     updateMapUI();
 };
 
 export const nextDay = () => {
+    // 1. Return non-broken tiles to deck
+    if (mapState.tiles) {
+        for (let y = 0; y < 7; y++) {
+            for (let x = 0; x < 7; x++) {
+                const instance = mapState.tiles[y][x];
+                if (instance && instance.tileId !== 'soil' && instance.usesLeft > 0) {
+                    mapState.tileDeck.push(instance.tileId);
+                }
+            }
+        }
+    }
+
     mapState.day++;
     mapState.energy = mapState.maxEnergy;
     mapState.dailyClaimed = false;
     mapState.playerX = 3;
     mapState.playerY = 3;
     generateMap();
+    saveMapState();
     updateMapUI();
     updateMapRender();
+    renderDeckTab();
 };
 
 export const handleTileInteraction = (x: number, y: number) => {
@@ -106,6 +155,7 @@ export const handleTileInteraction = (x: number, y: number) => {
             elements.mapGrid.children[domIndex].className = 'map-tile soil';
         }
     }
+    saveMapState();
     updateMapUI();
 };
 
@@ -147,6 +197,7 @@ export const handleMapMovement = (code: string) => {
                 mapState.energy--;
                 updateMapRender();
                 handleTileInteraction(newX, newY);
+                saveMapState();
                 setTimeout(() => {
                     mapState.isMoving = false;
                 }, 150);
@@ -177,6 +228,7 @@ export const showDailyReward = () => {
         btn.addEventListener('click', () => {
             mapState.tileDeck.push(definition.id);
             mapState.dailyClaimed = true;
+            saveMapState();
             updateMapUI();
             elements.dailyModal.classList.add('hidden');
         });

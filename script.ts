@@ -4,7 +4,7 @@
  */
 
 import { CONFIG } from './config.ts';
-import { state } from './state.ts';
+import { state, mapState } from './state.ts';
 import { elements, initElements } from './dom.ts';
 import { updateStatusBar } from './ui-shared.ts';
 import { populateLocations, populateShop, switchTab, isTabActive } from './ui-main.ts';
@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initial view
         switchTab('generator-tab');
         renderStorage();
+        if (state.pcStorage.length > 0) renderStorage();
+        if (mapState.tileDeck.length > 0) renderDeckTab();
     };
 
     // 3. Global Event Handlers
